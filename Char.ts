@@ -1,21 +1,14 @@
-const BASE_AC = 13
-const LEVEL_UP_STAT_INCREASE = 2
-const ARMOR_STR_REQ = {heavy: 16, medium: 14, light: 12, none: 0}
-const HIT_DICE_FROM_MOD = [ 4, 6, 8, 10, 12 ]
-const ARMOR_MODS = { "heavy": 3, "medium": 2, "light": 1, none: 0}
-const WEAPON_DIE: {[K in Weapon]: number }= {
-  "two-hand": 12, 
-  "polearm": 10, 
-  "one-hand": 8, 
-  "finesse": 6,
-  "ranged": 6, 
-  "staff": 4,  
-  "none": 0,
-}
-
-type Armor = "heavy" | "medium" | "light" | "none"
-type Weapon = "two-hand" | "polearm" | "one-hand" | "finesse" | "ranged" | "staff" | "none"
-type Stat = "str" | "dex" | "int"
+import type { Armor, Weapon, Stat } from './types'
+import { 
+  ARMOR_MODS, 
+  ARMOR_STR_REQ, 
+  ATTACKS_PER_LEVEL, 
+  BASE_AC, 
+  HIT_DICE_FROM_MOD, 
+  LEVEL_UP_STAT_INCREASE,  
+  WEAPON_DIE,
+  WEAPON_STAT
+} from './constants'
 
 function isTwoHand(weapon: Weapon) {
   return (
@@ -26,9 +19,7 @@ function isTwoHand(weapon: Weapon) {
   )
 }
 
-
-
-export function mod(stat: number) {
+function mod(stat: number) {
   return Math.floor((stat - 10) / 2)
 }
 
@@ -76,7 +67,7 @@ class Char {
   roll_hp() {
     const str_mod = mod(this.str) > 0 ? mod(this.str) : 0
     const hit_dice = HIT_DICE_FROM_MOD[str_mod - 1] || 4
-    const curr_roll = Math.ceil(Math.random() * hit_dice) + str_mod + this.lvl
+    const curr_roll = Math.ceil(Math.random() * hit_dice) + str_mod
     this.hp_rolls.push(curr_roll || 1)
     this.hp += curr_roll;
   }
@@ -132,7 +123,17 @@ class Char {
   }
 
   weapon_attack() {
-    return Math.ceil(Math.random() * WEAPON_DIE[this.weapon])
+    const dmg_mod = mod(this[WEAPON_STAT[this.weapon]])
+    const attacks = ATTACKS_PER_LEVEL[this.lvl - 1]
+    let total = 0;
+    for (let i = 0; i < attacks; i++) {
+      total += Math.ceil(Math.random() * WEAPON_DIE[this.weapon]);
+      total += dmg_mod 
+    }
+    for (let i = 0; i < this.sneak_attack; i++){
+      total += Math.ceil(Math.random() * 6);
+    }
+    return total;
   }
 
   print() {
@@ -142,29 +143,31 @@ class Char {
       "DEX:", this.dex, "(", mod(this.dex), ")", this.maneuvers("dex"), "\n",
       "INT:", this.int, "(", mod(this.int), ")", this.maneuvers("int"), "\n",
       "AC:", this.ac(), "\n",
-      "HP:", this.hp, this.hp_rolls, "\n"
+      "HP:", this.hp, this.hp_rolls, "\n",
+      "DMG: ", this.weapon_attack(), "\n",
     )
   }
 }
 
-const c = new Char(10, 16, 6)
+const c = new Char(6, 10, 16)
+c.equip_weapon("staff")
+c.print()
+c.level_up("int")
+c.print()
+c.level_up("int")
 c.print()
 c.level_up("dex")
 c.print()
 c.level_up("dex")
 c.print()
-c.level_up("str")
+c.level_up("dex")
+c.print()
+c.level_up("dex")
+c.print()
+c.level_up("dex")
 c.print()
 c.level_up("str")
 c.print()
 c.level_up("str")
 c.equip_armor("light")
-c.print()
-c.level_up("str")
-c.equip_armor("medium")
-c.print()
-c.level_up("str")
-c.equip_armor("heavy")
-c.print()
-c.level_up("int")
 c.print()
