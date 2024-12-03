@@ -1,14 +1,17 @@
 import type {Armor, Weapon, Stat} from './types'
 
+export const SNEAK_ATTACK_DIE = 8
 export const BASE_AC = 13
-
 export const LEVEL_UP_STAT_INCREASE = 2
-
 export const ARMOR_STR_REQ = {heavy: 16, medium: 14, light: 12, none: 0}
-
 export const HIT_DICE_FROM_MOD: ReadonlyArray<number> = [ 4, 6, 8, 10, 12 ]
 
-export const ARMOR_MODS: {[K in Armor]: number} = { "heavy": 3, "medium": 2, "light": 1, none: 0}
+export const ARMOR_MODS: {[K in Armor]: number} = { 
+  "heavy": 3, 
+  "medium": 2, 
+  "light": 1, 
+  "none": 0
+}
 
 export const WEAPON_DIE: {[K in Weapon]: number }= {
   "two-hand": 12, 
