@@ -9,19 +9,20 @@ type PickProps = {
 
 export function Picker({setter, value}: PickProps) {
 
+    const highOrLow = value === 'high' ? 'primary' : 'secondary'
     return (
         <div className="card">
-            <h1>{`Pick your ${value === 'high' ? 'primary' : 'secondary'} stat`}</h1>
+            <h1>{`Pick your ${highOrLow} stat`}</h1>
             {value === 'high' && <p>primary score is 16 or +3</p>}
             {value === 'mid' && <p>secondary score is 10 or +0</p>}
         <h3>
-          {" "}<Button onClick={() => setter("str")}>STR high?</Button>
+          {" "}<Button onClick={() => setter("str")}>STR {highOrLow}?</Button>
         </h3>
         <h3>
-          {" "}<Button onClick={() => setter("dex")}>DEX high?</Button>
+          {" "}<Button onClick={() => setter("dex")}>DEX {highOrLow}?</Button>
         </h3>
         <h3>
-          {" "}<Button onClick={() => setter("int")}>INT high?</Button>
+          {" "}<Button onClick={() => setter("int")}>INT {highOrLow}?</Button>
         </h3>
         </div>
 )};

@@ -43,8 +43,6 @@ function App() {
         <h3>Maneuvers: {combat_maneuvers}</h3>
         <h3>Finesse: {finesse_points}</h3>
         <h3>Sorcery: {sorcery_points}</h3>
-      </div>
-      <div className="card">
         <h3>
           STR: {str} ({str >= 10 ? "+" : ""}{mod(str)}) 
           {" "}<Button onClick={() => char.level_up("str")}>Level STR</Button>
@@ -62,7 +60,6 @@ function App() {
           setMid(null);
         }}>Reset</Button>
       </div>
-      <p className=""></p>
     </div>
   )
 }
