@@ -22,7 +22,7 @@ function isTwoHand(weapon: Weapon) {
   )
 }
 
-function mod(stat: number) {
+export function mod(stat: number) {
   return Math.floor((stat - 10) / 2)
 }
 
@@ -119,12 +119,14 @@ export class Char {
     if (!isTwoHand(this.weapon)) {
       this.shield = true
     }
+    this.emitter.emit("update")
   }
 
   equip_armor(armor: Armor) {
     if (this.str >= ARMOR_STR_REQ[armor]) {
       this.armor = armor
     }
+    this.emitter.emit("update")
   }
 
   equip_weapon(weapon: Weapon) {
@@ -134,6 +136,7 @@ export class Char {
     } else {
       this.weapon = weapon
     }
+    this.emitter.emit("update")
   }
 
   weapon_attack() {
@@ -145,6 +148,7 @@ export class Char {
       total += WEAPON_DIE[this.weapon]/2;
       total += dmg_mod 
     }
+    this.emitter.emit("update")
     return total;
   }
 
@@ -154,6 +158,7 @@ export class Char {
       // total += Math.ceil(Math.random() * SNEAK_ATTACK_DIE);
       total += SNEAK_ATTACK_DIE/2;
     }
+    this.emitter.emit("update")
     return total;
   }
 
@@ -184,7 +189,7 @@ export const level10 = (name: string, levels: Stat[], high: Stat, med: Stat, wea
 }
 
 export function useChar() {
-  const [char] = useState(() => new Char("str", "dex"))
+  const [char, setChar] = useState(() => new Char("str", "dex"))
   const [, setTrigger] = useState(0); // dumb
 
   useEffect(() => {
@@ -196,5 +201,21 @@ export function useChar() {
     };
   }, [char]);
 
-  return {char, hp: char.hp, ac: char.ac(), str: char.str, dex: char.dex, int: char.int}
+  const reset = (high: Stat, mid: Stat) => setChar(new Char(high, mid))
+
+  return {
+    char, 
+    reset,
+    level: char.lvl, 
+    hp: char.hp, 
+    ac: char.ac(), 
+    str: char.str, 
+    dex: char.dex, 
+    int: char.int,
+    shield: char.shield,
+    armor: char.armor,
+    sorcery_points: char.sorcery_points,
+    combat_maneuvers: mod(char.str),
+    finesse_points: char.finesse_points,
+  }
 }
