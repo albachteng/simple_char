@@ -26,9 +26,9 @@ export function mod(stat: number) {
   return Math.floor((stat - 10) / 2)
 }
 
-function dc(lvl: number, mod: number) {
-  return 8 + lvl + mod
-}
+// function dc(lvl: number, mod: number) {
+  // return 8 + lvl + mod
+// }
 
 export class Char {
   private emitter = mitt();
