@@ -15,7 +15,7 @@ export const ARMOR_MODS: {[K in Armor]: number} = {
 
 export const WEAPON_DIE: {[K in Weapon]: number }= {
   "two-hand": 12, 
-  "polearm": 10, 
+  // "polearm": 10, 
   "one-hand": 8, 
   "finesse": 6,
   "ranged": 6, 
@@ -25,7 +25,7 @@ export const WEAPON_DIE: {[K in Weapon]: number }= {
 
 export const WEAPON_STAT: {[K in Weapon]: Stat} = {
   "two-hand": "str", 
-  "polearm": "str", 
+  // "polearm": "str", 
   "one-hand": "str", 
   "finesse": "dex",
   "ranged": "dex", 
@@ -33,4 +33,29 @@ export const WEAPON_STAT: {[K in Weapon]: Stat} = {
   "none": "str"
 }
 
-export const ATTACKS_PER_LEVEL: ReadonlyArray<number> = [1, 1, 1, 2, 2, 2, 2, 3, 3, 3]
+export const RACIAL_BONUS = {
+  elf: {
+	ability: "Treewalk",
+	bonus: [{ plus: 2, stat: "dex"}]
+  },
+  gnome: {
+	ability: "Tinker",
+	bonus: [{ plus: 2, stat: "int"}],
+  },
+  human: {
+	ability: "Contract", 
+	bonus: [{ plus: 1, stat: "any"}, { plus: 1, stat: "any"}],
+  },
+  dwarf: {
+	ability: "Stonesense", 
+	bonus: [{plus: 2, stat: "str"}],
+  },
+  dragonborn: {
+	ability: "Flametongue", 
+	bonus: [{plus: 2, stat: "any"}],
+  },
+  halfling: {
+	ability: "Luck", 
+	bonus: [{plus: 1, stat: "dex"}, {plus: 1, stat: "int"}],
+  }
+};

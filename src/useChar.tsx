@@ -3,7 +3,6 @@ import mitt from "mitt";
 import { 
   ARMOR_MODS, 
   ARMOR_STR_REQ, 
-  ATTACKS_PER_LEVEL, 
   BASE_AC, 
   HIT_DICE_FROM_MOD, 
   LEVEL_UP_STAT_INCREASE,  
@@ -16,7 +15,7 @@ import { useEffect, useState } from 'react'
 function isTwoHand(weapon: Weapon) {
   return (
     weapon === 'two-hand' || 
-    weapon === 'polearm' || 
+    // weapon === 'polearm' || 
     weapon === 'staff' || 
     weapon === 'ranged' 
   )
@@ -65,7 +64,7 @@ export class Char {
     if (stat === 'dex') {
       return this.finesse_points
     }
-    return mod(this[stat])
+    return this.str >= 16 ? mod(this.lvl) : 0;
   }
 
   roll_hp() {
@@ -78,8 +77,8 @@ export class Char {
   }
 
   hide() {
-    const factor = (this.dex >= 16 && this.armor !== 'heavy') ? 2 : 1
-    Math.ceil(Math.random() * 20) + (mod(this.dex) * factor) + this.lvl
+    const factor = (this.dex >= 16 && this.armor !== 'heavy') ? 2 : 1;
+    Math.ceil(Math.random() * 20) + mod(this.dex) + (this.lvl * factor);
   }
 
   ac() {
@@ -131,8 +130,11 @@ export class Char {
 
   equip_weapon(weapon: Weapon) {
     if (this.shield) {
-      if (!isTwoHand(weapon))
-        this.weapon = weapon
+      if (!isTwoHand(weapon)) { 
+		this.weapon = weapon
+	  } else {
+		console.error("Cannot equip a two-handed weapon and shield");
+	  }
     } else {
       this.weapon = weapon
     }
@@ -140,8 +142,8 @@ export class Char {
   }
 
   weapon_attack() {
-    const dmg_mod = mod(this[WEAPON_STAT[this.weapon]])
-    const attacks = ATTACKS_PER_LEVEL[this.lvl - 1]
+    const dmg_mod = mod(this[WEAPON_STAT[this.weapon]]) + this.lvl;
+    const attacks = 2
     let total = 0;
     for (let i = 0; i < attacks; i++) {
       // total += Math.ceil(Math.random() * WEAPON_DIE[this.weapon]);
@@ -190,14 +192,14 @@ export const level10 = (name: string, levels: Stat[], high: Stat, med: Stat, wea
 
 export function useChar() {
   const [char, setChar] = useState(() => new Char("str", "dex"))
-  const [, setTrigger] = useState(0); // dumb
+  const [, setTrigger] = useState(0); 
 
   useEffect(() => {
     const handleUpdate = () => setTrigger((prev) => prev + 1)
     char.on("update", handleUpdate);
 
     return () => {
-      char.off("update", handleUpdate); // cleanup on unmount
+      char.off("update", handleUpdate); 
     };
   }, [char]);
 
@@ -215,7 +217,7 @@ export function useChar() {
     shield: char.shield,
     armor: char.armor,
     sorcery_points: char.sorcery_points,
-    combat_maneuvers: mod(char.str),
+    combat_maneuvers: char.str > 16 ? char.lvl : 0,
     finesse_points: char.finesse_points,
   }
 }
