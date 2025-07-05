@@ -64,7 +64,7 @@ export class Char {
     if (stat === 'dex') {
       return this.finesse_points
     }
-    return this.str >= 16 ? mod(this.lvl) : 0;
+    return this.str >= 16 ? this.lvl : 0;
   }
 
   roll_hp() {
@@ -217,7 +217,7 @@ export function useChar() {
     shield: char.shield,
     armor: char.armor,
     sorcery_points: char.sorcery_points,
-    combat_maneuvers: char.str > 16 ? char.lvl : 0,
+    combat_maneuvers: char.str >= 16 ? char.lvl : 0,
     finesse_points: char.finesse_points,
   }
 }
