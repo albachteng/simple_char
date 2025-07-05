@@ -13,6 +13,7 @@ import {
 } from '../constants'
 import { useEffect, useState } from 'react'
 import { logger } from './logger'
+import { InventoryManager } from './inventory/InventoryManager'
 
 function isTwoHand(weapon: Weapon) {
   return (
@@ -48,6 +49,7 @@ export class Char {
   finesse_points: number
   race: Race | null
   abilities: string[]
+  inventory: InventoryManager
   constructor(high: Stat, med: Stat, race: Race | null = null, racialBonuses: Stat[] = []) {
     logger.charCreation(`Creating new character with high stat: ${high}, medium stat: ${med}, race: ${race || 'none'}`)
     
@@ -94,6 +96,9 @@ export class Char {
     this.shield = false
     this.armor = "none"
     this.weapon = "none"
+    
+    // Initialize inventory
+    this.inventory = new InventoryManager()
     
     logger.charCreation(`Rolling initial HP for level 1`)
     this.roll_hp()

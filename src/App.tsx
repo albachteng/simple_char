@@ -10,6 +10,7 @@ import { LogViewer } from './LogViewer'
 import { CharacterSaver } from './CharacterSaver'
 import { CharacterLoader } from './CharacterLoader'
 import { CharacterNameEditor } from './CharacterNameEditor'
+import { InventoryViewer } from './InventoryViewer'
 import { Stat, Race } from '../types';
 import { RACIAL_BONUS } from '../constants';
 
@@ -150,6 +151,7 @@ function App() {
              </div>
            </div>
            <AbilityViewer abilities={abilities} />
+           <InventoryViewer inventoryManager={char.inventory} />
            {showSaver && high && mid && selectedRace && (
              <CharacterSaver 
                char={char}
