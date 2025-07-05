@@ -19,7 +19,9 @@ export class CharacterHasher {
       armor: char.armor,
       weapon: char.weapon,
       shield: char.shield,
-      hp_rolls: char.hp_rolls
+      hp_rolls: char.hp_rolls,
+      level_up_choices: char.level_up_choices,
+      inventory: char.inventory.getInventory()
     }
     
     // Simple hash function using character data
@@ -43,9 +45,11 @@ export class CharacterHasher {
         racialBonuses,
         level: char.lvl,
         hp_rolls: char.hp_rolls,
+        level_up_choices: char.level_up_choices,
         armor: char.armor,
         weapon: char.weapon,
-        shield: char.shield
+        shield: char.shield,
+        inventory: char.inventory.getInventory()
       },
       timestamp: Date.now()
     }

@@ -19,6 +19,7 @@ function App() {
   const {
     char, 
     reset,
+    loadCharacter,
     level,
     hp, 
     ac, 
@@ -51,11 +52,15 @@ function App() {
   const anyBonusCount = getAnyBonusCount(selectedRace);
   const needsBonusSelection = selectedRace && currentBonusIndex < anyBonusCount;
 
+  // Track if we're in character creation mode vs loaded character mode
+  const [isCharacterLoaded, setIsCharacterLoaded] = useState(false);
+
   useEffect(() => {
-    if (high && mid && selectedRace && !needsBonusSelection) {
+    // Only reset for new character creation, not for loaded characters
+    if (high && mid && selectedRace && !needsBonusSelection && !isCharacterLoaded) {
       reset(high, mid, selectedRace, racialBonuses);
     }
-  }, [high, mid, selectedRace, racialBonuses, needsBonusSelection])
+  }, [high, mid, selectedRace, racialBonuses, needsBonusSelection, isCharacterLoaded])
 
   const handleBonusSelection = (stat: Stat) => {
     const newBonuses = [...racialBonuses, stat];
@@ -70,20 +75,31 @@ function App() {
     setRacialBonuses([]);
     setCurrentBonusIndex(0);
     setCharacterName('');
+    setIsCharacterLoaded(false); // Reset loaded flag
     setShowLoader(false);
     setShowSaver(false);
   };
 
   const handleLoadCharacter = (loadedChar: any, loadedHigh: Stat, loadedMid: Stat, loadedRacialBonuses: Stat[], name: string) => {
+    // Use the actual loaded character instead of recreating it
+    loadCharacter(loadedChar);
+    
+    // Set the UI state to match the loaded character
     setHigh(loadedHigh);
     setMid(loadedMid);
     setSelectedRace(loadedChar.race);
     setRacialBonuses(loadedRacialBonuses);
     setCurrentBonusIndex(loadedRacialBonuses.length);
     setCharacterName(name);
+    setIsCharacterLoaded(true); // Mark as loaded character
     setShowLoader(false);
-    
-    // The character will be reset in the useEffect when these states change
+  };
+
+  const handleInventoryChange = () => {
+    // Sync equipment state when inventory changes
+    char.syncEquipmentFromInventory();
+    // Trigger UI update by emitting character update event
+    char.triggerUpdate();
   };
 
   return (
@@ -151,7 +167,7 @@ function App() {
              </div>
            </div>
            <AbilityViewer abilities={abilities} />
-           <InventoryViewer inventoryManager={char.inventory} />
+           <InventoryViewer inventoryManager={char.inventory} onInventoryChange={handleInventoryChange} />
            {showSaver && high && mid && selectedRace && (
              <CharacterSaver 
                char={char}

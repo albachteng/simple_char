@@ -42,6 +42,7 @@ export class Char {
   lvl: number
   hp: number
   hp_rolls: number[]
+  level_up_choices: Stat[] // Track which stat was chosen at each level
   shield: boolean
   armor: Armor
   weapon: Weapon
@@ -93,6 +94,7 @@ export class Char {
     this.lvl = 1
     this.hp = 10
     this.hp_rolls = [10]
+    this.level_up_choices = [] // Start empty - level 1 doesn't have choices
     this.shield = false
     this.armor = "none"
     this.weapon = "none"
@@ -180,13 +182,16 @@ export class Char {
 
   ac() {
     const armor_mod = ARMOR_MODS[this.armor] || 0
-    const dex_mod = mod(this.dex)
+    const equippedBonuses = this.getEquippedStatBonuses()
+    const dex_mod = mod(this.dex + equippedBonuses.dex)
     const shield_bonus = Number(this.shield)
     const total_ac = BASE_AC + dex_mod + armor_mod + shield_bonus
     
     logger.acCalculation(`Calculating AC`, {
       base_ac: BASE_AC,
       dex: this.dex,
+      dex_equipment_bonus: equippedBonuses.dex,
+      effective_dex: this.dex + equippedBonuses.dex,
       dex_mod,
       armor: this.armor,
       armor_mod,
@@ -214,6 +219,7 @@ export class Char {
     
     this[choice] += LEVEL_UP_STAT_INCREASE
     this.lvl += 1
+    this.level_up_choices.push(choice) // Track the choice
     this.roll_hp()
     
     if (this.int > 10) {
@@ -250,8 +256,62 @@ export class Char {
     this.emitter.off(event, handler);
   }
 
+  triggerUpdate() {
+    this.emitter.emit("update");
+  }
+
   proficiency() {
     return this.lvl
+  }
+
+  // Sync equipment state with inventory system
+  syncEquipmentFromInventory() {
+    const equippedWeapon = this.inventory.getEquippedItemByType('weapon')
+    const equippedArmor = this.inventory.getEquippedItemByType('armor')
+    const equippedShield = this.inventory.getEquippedItemByType('shield')
+
+    // Update legacy equipment properties
+    this.weapon = equippedWeapon?.weaponType || 'none'
+    this.armor = equippedArmor?.armorType || 'none'
+    this.shield = !!equippedShield
+
+    logger.equipment(`Equipment synced from inventory`, {
+      weapon: this.weapon,
+      armor: this.armor,
+      shield: this.shield
+    })
+  }
+
+  // Get stat bonuses from equipped items
+  getEquippedStatBonuses(): { str: number, dex: number, int: number } {
+    const bonuses = { str: 0, dex: 0, int: 0 }
+    const equippedItems = this.inventory.getEquippedItems()
+
+    equippedItems.forEach(item => {
+      if (item.statBonuses) {
+        item.statBonuses.forEach(bonus => {
+          bonuses[bonus.stat] += bonus.bonus
+        })
+      }
+    })
+
+    return bonuses
+  }
+
+  // Get maneuver bonuses from equipped items
+  getEquippedManeuverBonuses(): { combat: number, finesse: number, sorcery: number } {
+    const bonuses = { combat: 0, finesse: 0, sorcery: 0 }
+    const equippedItems = this.inventory.getEquippedItems()
+
+    equippedItems.forEach(item => {
+      if (item.maneuverBonuses) {
+        item.maneuverBonuses.forEach(bonus => {
+          bonuses[bonus.type] += bonus.bonus
+        })
+      }
+    })
+
+    return bonuses
   }
 
   equip_shield() {
@@ -266,6 +326,7 @@ export class Char {
     
     if (canEquip) {
       this.shield = true
+      this.syncEquipmentFromInventory()
       logger.equipment(`Shield equipped successfully`)
     } else {
       logger.equipment(`Cannot equip shield - weapon is two-handed`)
@@ -288,6 +349,7 @@ export class Char {
     
     if (canEquip) {
       this.armor = armor
+      this.syncEquipmentFromInventory()
       logger.equipment(`${armor} armor equipped successfully`)
     } else {
       logger.equipment(`Cannot equip ${armor} armor - insufficient STR (need ${str_req}, have ${this.str})`)
@@ -310,12 +372,14 @@ export class Char {
     if (hasShield) {
       if (!isTwoHanded) { 
         this.weapon = weapon
+        this.syncEquipmentFromInventory()
         logger.equipment(`${weapon} weapon equipped successfully (with shield)`)
       } else {
         logger.equipment(`Cannot equip ${weapon} weapon - two-handed weapon conflicts with shield`)
       }
     } else {
       this.weapon = weapon
+      this.syncEquipmentFromInventory()
       logger.equipment(`${weapon} weapon equipped successfully`)
     }
     
@@ -426,9 +490,14 @@ export function useChar() {
   const reset = (high: Stat, mid: Stat, race: Race | null = null, racialBonuses: Stat[] = []) => 
     setChar(new Char(high, mid, race, racialBonuses))
 
+  const loadCharacter = (loadedChar: Char) => {
+    setChar(loadedChar)
+  }
+
   return {
     char, 
     reset,
+    loadCharacter,
     level: char.lvl, 
     hp: char.hp, 
     ac: char.ac(), 

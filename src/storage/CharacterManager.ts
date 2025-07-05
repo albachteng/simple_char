@@ -121,12 +121,17 @@ export class CharacterManager {
       data.racialBonuses as Stat[]
     )
     
-    // Restore level progression
-    const targetLevel = data.level
-    while (char.lvl < targetLevel) {
-      // For reconstruction, we'll level up the primary stat
-      // This is a simplification - in the future we could store level-up choices
-      char.level_up(data.high as Stat)
+    // Restore level progression using actual choices
+    if (data.level_up_choices && data.level_up_choices.length > 0) {
+      data.level_up_choices.forEach(choice => {
+        char.level_up(choice as Stat)
+      })
+    } else {
+      // Fallback for older saves without level_up_choices
+      const targetLevel = data.level
+      while (char.lvl < targetLevel) {
+        char.level_up(data.high as Stat)
+      }
     }
     
     // Restore equipment
@@ -138,6 +143,13 @@ export class CharacterManager {
     }
     if (data.shield) {
       char.equip_shield()
+    }
+    
+    // Restore inventory
+    if (data.inventory) {
+      char.inventory.setInventory(data.inventory)
+      // Sync equipment state after loading inventory
+      char.syncEquipmentFromInventory()
     }
     
     // Validate the reconstruction

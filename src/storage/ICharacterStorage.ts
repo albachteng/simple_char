@@ -8,9 +8,11 @@ export interface SavedCharacter {
     racialBonuses: string[]
     level: number
     hp_rolls: number[]
+    level_up_choices: string[] // Track which stat was leveled each time
     armor: string
     weapon: string
     shield: boolean
+    inventory: any // Store the full inventory data
   }
   timestamp: number
 }
