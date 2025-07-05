@@ -1,4 +1,4 @@
-import type { Armor, Weapon, Stat } from '../types'
+import type { Armor, Weapon, Stat, Race, RacialBonus } from '../types'
 import mitt from "mitt";
 import { 
   ARMOR_MODS, 
@@ -8,7 +8,8 @@ import {
   LEVEL_UP_STAT_INCREASE,  
   SNEAK_ATTACK_DIE,
   WEAPON_DIE,
-  WEAPON_STAT
+  WEAPON_STAT,
+  RACIAL_BONUS
 } from '../constants'
 import { useEffect, useState } from 'react'
 import { logger } from './logger'
@@ -45,14 +46,47 @@ export class Char {
   weapon: Weapon
   sorcery_points: number
   finesse_points: number
-  constructor(high: Stat, med: Stat) {
-    logger.charCreation(`Creating new character with high stat: ${high}, medium stat: ${med}`)
+  race: Race | null
+  abilities: string[]
+  constructor(high: Stat, med: Stat, race: Race | null = null, racialBonuses: Stat[] = []) {
+    logger.charCreation(`Creating new character with high stat: ${high}, medium stat: ${med}, race: ${race || 'none'}`)
     
     this.str = "str" === high ? 16 : ("str" === med) ? 10 : 6 
     this.dex = "dex" === high ? 16 : ("dex" === med) ? 10 : 6 
     this.int = "int" === high ? 16 : ("int" === med) ? 10 : 6 
     
-    logger.charCreation(`Initial stats set`, { str: this.str, dex: this.dex, int: this.int })
+    this.race = race
+    this.abilities = []
+    
+    // Apply racial bonuses
+    if (race && RACIAL_BONUS[race]) {
+      const raceData = RACIAL_BONUS[race]
+      this.abilities.push(raceData.ability)
+      
+      logger.charCreation(`Applying racial bonuses for ${race}`, { 
+        ability: raceData.ability,
+        bonuses: raceData.bonus 
+      })
+      
+      let anyBonusIndex = 0
+      raceData.bonus.forEach((bonus, index) => {
+        if (bonus.stat === "any") {
+          // Use the provided racialBonuses array for "any" stat bonuses
+          if (anyBonusIndex < racialBonuses.length) {
+            const chosenStat = racialBonuses[anyBonusIndex]
+            this[chosenStat] += bonus.plus
+            logger.charCreation(`Applied "any" bonus +${bonus.plus} to ${chosenStat}`)
+            anyBonusIndex++
+          }
+        } else {
+          // Apply fixed stat bonus
+          this[bonus.stat as Stat] += bonus.plus
+          logger.charCreation(`Applied racial bonus +${bonus.plus} to ${bonus.stat}`)
+        }
+      })
+    }
+    
+    logger.charCreation(`Initial stats set (after racial bonuses)`, { str: this.str, dex: this.dex, int: this.int })
     
     this.lvl = 1
     this.hp = 10
@@ -68,6 +102,8 @@ export class Char {
     this.finesse_points = this?.dex >= 16 ? 1 : 0
     
     logger.charCreation(`Character created successfully`, {
+      race: this.race,
+      abilities: this.abilities,
       level: this.lvl,
       hp: this.hp,
       sorcery_points: this.sorcery_points,
@@ -382,7 +418,8 @@ export function useChar() {
     };
   }, [char]);
 
-  const reset = (high: Stat, mid: Stat) => setChar(new Char(high, mid))
+  const reset = (high: Stat, mid: Stat, race: Race | null = null, racialBonuses: Stat[] = []) => 
+    setChar(new Char(high, mid, race, racialBonuses))
 
   return {
     char, 
@@ -398,5 +435,7 @@ export function useChar() {
     sorcery_points: char.sorcery_points,
     combat_maneuvers: char.str >= 16 ? char.lvl : 0,
     finesse_points: char.finesse_points,
+    race: char.race,
+    abilities: char.abilities,
   }
 }
