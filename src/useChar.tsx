@@ -11,6 +11,7 @@ import {
   WEAPON_STAT
 } from '../constants'
 import { useEffect, useState } from 'react'
+import { logger } from './logger'
 
 function isTwoHand(weapon: Weapon) {
   return (
@@ -22,7 +23,9 @@ function isTwoHand(weapon: Weapon) {
 }
 
 export function mod(stat: number) {
-  return Math.floor((stat - 10) / 2)
+  const result = Math.floor((stat - 10) / 2)
+  logger.statCalculation(`Calculating modifier for stat ${stat}`, { stat, modifier: result })
+  return result
 }
 
 // function dc(lvl: number, mod: number) {
@@ -43,28 +46,66 @@ export class Char {
   sorcery_points: number
   finesse_points: number
   constructor(high: Stat, med: Stat) {
+    logger.charCreation(`Creating new character with high stat: ${high}, medium stat: ${med}`)
+    
     this.str = "str" === high ? 16 : ("str" === med) ? 10 : 6 
     this.dex = "dex" === high ? 16 : ("dex" === med) ? 10 : 6 
     this.int = "int" === high ? 16 : ("int" === med) ? 10 : 6 
+    
+    logger.charCreation(`Initial stats set`, { str: this.str, dex: this.dex, int: this.int })
+    
     this.lvl = 1
     this.hp = 10
     this.hp_rolls = [10]
     this.shield = false
     this.armor = "none"
     this.weapon = "none"
+    
+    logger.charCreation(`Rolling initial HP for level 1`)
     this.roll_hp()
+    
     this.sorcery_points = this?.int > 10 ? 3 : 0
     this.finesse_points = this?.dex >= 16 ? 1 : 0
+    
+    logger.charCreation(`Character created successfully`, {
+      level: this.lvl,
+      hp: this.hp,
+      sorcery_points: this.sorcery_points,
+      finesse_points: this.finesse_points
+    })
   }
 
   maneuvers(stat: Stat) {
+    let result: number
+    
     if (stat === 'int') {
-      return this.sorcery_points
+      result = this.sorcery_points
+      logger.maneuvers(`INT maneuvers: sorcery points`, { 
+        stat, 
+        int: this.int, 
+        sorcery_points: this.sorcery_points,
+        result 
+      })
+    } else if (stat === 'dex') {
+      result = this.finesse_points
+      logger.maneuvers(`DEX maneuvers: finesse points`, { 
+        stat, 
+        dex: this.dex, 
+        finesse_points: this.finesse_points,
+        result 
+      })
+    } else {
+      result = this.str >= 16 ? this.lvl : 0
+      logger.maneuvers(`STR maneuvers: combat maneuvers`, { 
+        stat, 
+        str: this.str, 
+        level: this.lvl,
+        str_meets_req: this.str >= 16,
+        result 
+      })
     }
-    if (stat === 'dex') {
-      return this.finesse_points
-    }
-    return this.str >= 16 ? this.lvl : 0;
+    
+    return result
   }
 
   roll_hp() {
@@ -72,8 +113,23 @@ export class Char {
     const hit_dice = HIT_DICE_FROM_MOD[str_mod - 1] || 4
     // const curr_roll = Math.ceil(Math.random() * hit_dice) + str_mod
     const curr_roll = (hit_dice/2) + str_mod
-    this.hp_rolls.push(curr_roll || 1)
-    this.hp += curr_roll;
+    const final_roll = curr_roll || 1
+    
+    logger.hpCalculation(`Rolling HP for level ${this.lvl}`, {
+      str: this.str,
+      str_mod,
+      hit_dice,
+      base_roll: hit_dice/2,
+      str_bonus: str_mod,
+      total_roll: curr_roll,
+      final_roll,
+      previous_hp: this.hp
+    })
+    
+    this.hp_rolls.push(final_roll)
+    this.hp += final_roll
+    
+    logger.hpCalculation(`HP updated`, { new_hp: this.hp, hp_rolls: this.hp_rolls })
   }
 
   hide() {
@@ -83,22 +139,65 @@ export class Char {
 
   ac() {
     const armor_mod = ARMOR_MODS[this.armor] || 0
-    return BASE_AC + mod(this.dex) + armor_mod + Number(this.shield)
+    const dex_mod = mod(this.dex)
+    const shield_bonus = Number(this.shield)
+    const total_ac = BASE_AC + dex_mod + armor_mod + shield_bonus
+    
+    logger.acCalculation(`Calculating AC`, {
+      base_ac: BASE_AC,
+      dex: this.dex,
+      dex_mod,
+      armor: this.armor,
+      armor_mod,
+      shield: this.shield,
+      shield_bonus,
+      total_ac
+    })
+    
+    return total_ac
   }
 
   level_up(choice: Stat) {
+    const old_stat = this[choice]
+    const old_level = this.lvl
+    const old_sorcery = this.sorcery_points
+    const old_finesse = this.finesse_points
+    
+    logger.levelUp(`Leveling up ${choice} from ${old_stat} to ${old_stat + LEVEL_UP_STAT_INCREASE}`, {
+      stat: choice,
+      old_value: old_stat,
+      increase: LEVEL_UP_STAT_INCREASE,
+      old_level,
+      new_level: old_level + 1
+    })
+    
     this[choice] += LEVEL_UP_STAT_INCREASE
     this.lvl += 1
     this.roll_hp()
+    
     if (this.int > 10) {
       this.sorcery_points++ 
+      logger.levelUp(`Gained sorcery point (INT > 10)`, { int: this.int, sorcery_points: this.sorcery_points })
     }
     if (this.int > 14) {
       this.sorcery_points++
+      logger.levelUp(`Gained additional sorcery point (INT > 14)`, { int: this.int, sorcery_points: this.sorcery_points })
     }
     if (this.dex >= 16 && this.lvl % 2) {
       this.finesse_points++
+      logger.levelUp(`Gained finesse point (DEX >= 16 and odd level)`, { 
+        dex: this.dex, 
+        level: this.lvl, 
+        finesse_points: this.finesse_points 
+      })
     }
+    
+    logger.levelUp(`Level up complete`, {
+      stat: choice,
+      old_stats: { [choice]: old_stat, level: old_level, sorcery_points: old_sorcery, finesse_points: old_finesse },
+      new_stats: { [choice]: this[choice], level: this.lvl, sorcery_points: this.sorcery_points, finesse_points: this.finesse_points }
+    })
+    
     this.emitter.emit("update")
   }
 
@@ -115,53 +214,133 @@ export class Char {
   }
 
   equip_shield() {
-    if (!isTwoHand(this.weapon)) {
+    const canEquip = !isTwoHand(this.weapon)
+    
+    logger.equipment(`Attempting to equip shield`, { 
+      current_weapon: this.weapon,
+      is_two_handed: isTwoHand(this.weapon),
+      can_equip: canEquip,
+      currently_has_shield: this.shield
+    })
+    
+    if (canEquip) {
       this.shield = true
+      logger.equipment(`Shield equipped successfully`)
+    } else {
+      logger.equipment(`Cannot equip shield - weapon is two-handed`)
     }
+    
     this.emitter.emit("update")
   }
 
   equip_armor(armor: Armor) {
-    if (this.str >= ARMOR_STR_REQ[armor]) {
+    const str_req = ARMOR_STR_REQ[armor]
+    const canEquip = this.str >= str_req
+    
+    logger.equipment(`Attempting to equip ${armor} armor`, {
+      armor,
+      str_requirement: str_req,
+      current_str: this.str,
+      can_equip: canEquip,
+      current_armor: this.armor
+    })
+    
+    if (canEquip) {
       this.armor = armor
+      logger.equipment(`${armor} armor equipped successfully`)
+    } else {
+      logger.equipment(`Cannot equip ${armor} armor - insufficient STR (need ${str_req}, have ${this.str})`)
     }
+    
     this.emitter.emit("update")
   }
 
   equip_weapon(weapon: Weapon) {
-    if (this.shield) {
-      if (!isTwoHand(weapon)) { 
-		this.weapon = weapon
-	  } else {
-		console.error("Cannot equip a two-handed weapon and shield");
-	  }
+    const isTwoHanded = isTwoHand(weapon)
+    const hasShield = this.shield
+    
+    logger.equipment(`Attempting to equip ${weapon} weapon`, {
+      weapon,
+      is_two_handed: isTwoHanded,
+      has_shield: hasShield,
+      current_weapon: this.weapon
+    })
+    
+    if (hasShield) {
+      if (!isTwoHanded) { 
+        this.weapon = weapon
+        logger.equipment(`${weapon} weapon equipped successfully (with shield)`)
+      } else {
+        logger.equipment(`Cannot equip ${weapon} weapon - two-handed weapon conflicts with shield`)
+      }
     } else {
       this.weapon = weapon
+      logger.equipment(`${weapon} weapon equipped successfully`)
     }
+    
     this.emitter.emit("update")
   }
 
   weapon_attack() {
-    const dmg_mod = mod(this[WEAPON_STAT[this.weapon]]) + this.lvl;
+    const weapon_stat = WEAPON_STAT[this.weapon]
+    const stat_mod = mod(this[weapon_stat])
+    const dmg_mod = stat_mod + this.lvl
     const attacks = 2
-    let total = 0;
+    const weapon_die = WEAPON_DIE[this.weapon]
+    let total = 0
+    
+    logger.combat(`Starting weapon attack with ${this.weapon}`, {
+      weapon: this.weapon,
+      weapon_stat,
+      stat_value: this[weapon_stat],
+      stat_mod,
+      level: this.lvl,
+      dmg_mod,
+      attacks,
+      weapon_die
+    })
+    
     for (let i = 0; i < attacks; i++) {
-      // total += Math.ceil(Math.random() * WEAPON_DIE[this.weapon]);
-      total += WEAPON_DIE[this.weapon]/2;
+      // total += Math.ceil(Math.random() * weapon_die);
+      const die_roll = weapon_die/2
+      total += die_roll
       total += dmg_mod 
+      
+      logger.combat(`Attack ${i + 1}`, {
+        die_roll,
+        dmg_mod,
+        attack_total: die_roll + dmg_mod,
+        running_total: total
+      })
     }
+    
+    logger.combat(`Weapon attack complete`, { total_damage: total })
+    
     this.emitter.emit("update")
-    return total;
+    return total
   }
 
   sneak_attack() {
+    logger.combat(`Starting sneak attack`, { finesse_points: this.finesse_points })
+    
     let total = this.weapon_attack()
+    
     for (let i = 0; i < this.finesse_points; i++){
       // total += Math.ceil(Math.random() * SNEAK_ATTACK_DIE);
-      total += SNEAK_ATTACK_DIE/2;
+      const sneak_die = SNEAK_ATTACK_DIE/2
+      total += sneak_die
+      
+      logger.combat(`Sneak attack die ${i + 1}`, {
+        die_roll: sneak_die,
+        die_size: SNEAK_ATTACK_DIE,
+        running_total: total
+      })
     }
+    
+    logger.combat(`Sneak attack complete`, { total_damage: total })
+    
     this.emitter.emit("update")
-    return total;
+    return total
   }
 
   print() {

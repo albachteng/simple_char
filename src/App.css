@@ -1,8 +1,19 @@
-#root {
+.app-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+}
+
+/* Only constrain chevron size, let Mantine handle positioning */
+.mantine-ComboboxChevron-chevron,
+.mantine-Select-chevron {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  flex-shrink: 0 !important;
 }
 
 .logo {
