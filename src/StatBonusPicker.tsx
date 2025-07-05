@@ -1,5 +1,4 @@
 import { Button } from '@mantine/core'
-import { Dispatch, SetStateAction } from 'react'
 import { Stat } from '../types'
 
 type StatBonusPickerProps = {

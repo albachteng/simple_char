@@ -48,8 +48,8 @@ describe('LogViewer component', () => {
     const user = userEvent.setup()
     renderWithMantine(<LogViewer />)
     
-    // Find the collapse button (arrow)
-    const collapseButton = screen.getByRole('button', { name: '' })
+    // Find the collapse button by aria-label
+    const collapseButton = screen.getByLabelText('Collapse log viewer')
     await user.click(collapseButton)
     
     // The filters should be hidden when collapsed

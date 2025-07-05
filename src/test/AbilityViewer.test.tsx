@@ -9,13 +9,14 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('AbilityViewer', () => {
   it('should render nothing when no abilities are provided', () => {
-    const { container } = render(
+    render(
       <TestWrapper>
         <AbilityViewer abilities={[]} />
       </TestWrapper>
     )
 
-    expect(container.firstChild).toBeNull()
+    // Component returns null, so we shouldn't find the abilities section
+    expect(screen.queryByText('Special Abilities')).not.toBeInTheDocument()
   })
 
   it('should render abilities when provided', () => {

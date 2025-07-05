@@ -33,9 +33,9 @@ describe('RacePicker', () => {
       </TestWrapper>
     )
 
-    // Check that bonus descriptions are shown
-    expect(screen.getByText(/Bonuses:/)).toBeInTheDocument()
-    expect(screen.getByText(/Ability:/)).toBeInTheDocument()
+    // Check that bonus descriptions are shown - use getAllByText since there are multiple races
+    expect(screen.getAllByText(/Bonuses:/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Ability:/).length).toBeGreaterThan(0)
   })
 
   it('should call setter when race is selected', () => {

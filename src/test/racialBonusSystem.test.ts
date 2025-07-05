@@ -1,23 +1,23 @@
 import { describe, it, expect } from 'vitest'
 import { Char } from '../useChar'
-import { RACIAL_BONUS } from '../constants'
+import { RACIAL_BONUS } from '../../constants'
 
 describe('Racial Bonus System', () => {
   describe('Character creation with racial bonuses', () => {
     it('should apply elf racial bonuses correctly', () => {
-      const char = new Char('str', 'dex', 'elf', ['int'])
+      const char = new Char('str', 'dex', 'elf', [])
       
       expect(char.race).toBe('elf')
-      expect(char.abilities).toContain('Dark Vision: See in darkness up to 60 feet')
+      expect(char.abilities).toContain('Treewalk')
       expect(char.dex).toBe(12) // 10 (medium) + 2 (racial)
-      expect(char.int).toBe(7) // 6 (low) + 1 (any bonus)
+      expect(char.int).toBe(6) // 6 (low) - no bonus
     })
 
     it('should apply dwarf racial bonuses correctly', () => {
       const char = new Char('str', 'dex', 'dwarf', [])
       
       expect(char.race).toBe('dwarf')
-      expect(char.abilities).toContain('Darkvision: See in darkness up to 60 feet')
+      expect(char.abilities).toContain('Stonesense')
       expect(char.str).toBe(18) // 16 (high) + 2 (racial)
       expect(char.hp).toBeGreaterThan(10) // Should have bonus HP
     })
@@ -26,25 +26,25 @@ describe('Racial Bonus System', () => {
       const char = new Char('str', 'dex', 'human', ['str', 'int'])
       
       expect(char.race).toBe('human')
-      expect(char.abilities).toContain('Versatile: Extra skill proficiency')
+      expect(char.abilities).toContain('Contract')
       expect(char.str).toBe(17) // 16 (high) + 1 (any bonus)
       expect(char.int).toBe(7) // 6 (low) + 1 (any bonus)
     })
 
     it('should apply gnome racial bonuses correctly', () => {
-      const char = new Char('str', 'dex', 'gnome', ['dex'])
+      const char = new Char('str', 'dex', 'gnome', [])
       
       expect(char.race).toBe('gnome')
-      expect(char.abilities).toContain('Tinker: Proficiency with tinker tools')
+      expect(char.abilities).toContain('Tinker')
       expect(char.int).toBe(8) // 6 (low) + 2 (racial)
-      expect(char.dex).toBe(11) // 10 (medium) + 1 (any bonus)
+      expect(char.dex).toBe(10) // 10 (medium) - no bonus
     })
 
     it('should apply dragonborn racial bonuses correctly', () => {
       const char = new Char('str', 'dex', 'dragonborn', [])
       
       expect(char.race).toBe('dragonborn')
-      expect(char.abilities).toContain('Breath Weapon: 15-foot cone, 2d6 damage')
+      expect(char.abilities).toContain('Flametongue')
       expect(char.str).toBe(18) // 16 (high) + 2 (racial)
     })
 
@@ -52,8 +52,9 @@ describe('Racial Bonus System', () => {
       const char = new Char('str', 'dex', 'halfling', [])
       
       expect(char.race).toBe('halfling')
-      expect(char.abilities).toContain('Lucky: Reroll 1s on d20 rolls')
-      expect(char.dex).toBe(12) // 10 (medium) + 2 (racial)
+      expect(char.abilities).toContain('Lucky')
+      expect(char.dex).toBe(11) // 10 (medium) + 1 (racial)
+      expect(char.int).toBe(7) // 6 (low) + 1 (racial)
     })
   })
 

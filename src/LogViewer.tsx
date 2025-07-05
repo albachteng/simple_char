@@ -66,6 +66,7 @@ export function LogViewer() {
               variant="light" 
               onClick={() => setIsOpen(!isOpen)}
               style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+              aria-label={isOpen ? 'Collapse log viewer' : 'Expand log viewer'}
             >
               ▶
             </ActionIcon>

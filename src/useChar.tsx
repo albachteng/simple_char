@@ -1,4 +1,4 @@
-import type { Armor, Weapon, Stat, Race, RacialBonus } from '../types'
+import type { Armor, Weapon, Stat, Race } from '../types'
 import mitt from "mitt";
 import { 
   ARMOR_MODS, 
@@ -69,7 +69,7 @@ export class Char {
       })
       
       let anyBonusIndex = 0
-      raceData.bonus.forEach((bonus, index) => {
+      raceData.bonus.forEach((bonus) => {
         if (bonus.stat === "any") {
           // Use the provided racialBonuses array for "any" stat bonuses
           if (anyBonusIndex < racialBonuses.length) {

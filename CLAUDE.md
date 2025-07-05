@@ -89,3 +89,13 @@ The following features are planned for development:
 - Focus on functionality over styling
 - Document all changes in changelog with timestamps
 - Test thoroughly before moving to next feature
+
+## IMPORTANT: Game System Rules
+
+**DO NOT MODIFY CONSTANTS.TS** - This file contains the game balance and rules for a custom RPG system (NOT D&D). The racial bonuses, stat progressions, equipment values, and other game mechanics are specifically designed for this system. Do not:
+- Change racial bonus values or abilities
+- Modify stat progression formulas
+- Alter equipment statistics or requirements
+- Update any game balance numbers without explicit user request
+
+When working with racial bonuses or other game mechanics, use the existing data as-is. If tests fail due to game data, update the tests to match the constants, not the other way around.

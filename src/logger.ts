@@ -103,6 +103,11 @@ class Logger {
     this.log('debug', 'maneuvers', message, data)
   }
 
+  // Storage operations
+  storage(message: string, data?: any) {
+    this.log('info', 'storage', message, data)
+  }
+
   // General debug
   debug(message: string, data?: any) {
     this.log('debug', 'debug', message, data)

@@ -7,6 +7,9 @@ import { RacePicker } from './RacePicker'
 import { StatBonusPicker } from './StatBonusPicker'
 import { AbilityViewer } from './AbilityViewer'
 import { LogViewer } from './LogViewer'
+import { CharacterSaver } from './CharacterSaver'
+import { CharacterLoader } from './CharacterLoader'
+import { CharacterNameEditor } from './CharacterNameEditor'
 import { Stat, Race } from '../types';
 import { RACIAL_BONUS } from '../constants';
 
@@ -26,7 +29,6 @@ function App() {
     sorcery_points,
     combat_maneuvers,
     finesse_points,
-    race,
     abilities,
   } = useChar()
 
@@ -35,6 +37,9 @@ function App() {
   const [selectedRace, setSelectedRace] = useState<null | Race>(null);
   const [racialBonuses, setRacialBonuses] = useState<Stat[]>([]);
   const [currentBonusIndex, setCurrentBonusIndex] = useState(0);
+  const [characterName, setCharacterName] = useState('');
+  const [showLoader, setShowLoader] = useState(false);
+  const [showSaver, setShowSaver] = useState(false);
 
   // Calculate how many "any" bonuses need to be selected
   const getAnyBonusCount = (race: Race | null): number => {
@@ -63,11 +68,40 @@ function App() {
     setSelectedRace(null);
     setRacialBonuses([]);
     setCurrentBonusIndex(0);
+    setCharacterName('');
+    setShowLoader(false);
+    setShowSaver(false);
+  };
+
+  const handleLoadCharacter = (loadedChar: any, loadedHigh: Stat, loadedMid: Stat, loadedRacialBonuses: Stat[], name: string) => {
+    setHigh(loadedHigh);
+    setMid(loadedMid);
+    setSelectedRace(loadedChar.race);
+    setRacialBonuses(loadedRacialBonuses);
+    setCurrentBonusIndex(loadedRacialBonuses.length);
+    setCharacterName(name);
+    setShowLoader(false);
+    
+    // The character will be reset in the useEffect when these states change
   };
 
   return (
     <div className="app-container">
-      {!high ? <Picker value={'high'} setter={setHigh}/> : 
+      {showLoader ? (
+        <CharacterLoader 
+          onLoad={handleLoadCharacter} 
+          onCancel={() => setShowLoader(false)}
+        />
+      ) : !high ? (
+        <div>
+          <Picker value={'high'} setter={setHigh}/>
+          <div style={{ marginTop: '16px', textAlign: 'center' }}>
+            <Button variant="outline" onClick={() => setShowLoader(true)}>
+              Load Saved Character
+            </Button>
+          </div>
+        </div>
+      ) : 
        !mid ? <Picker value={'mid'} setter={setMid}/> : 
        !selectedRace ? <RacePicker setter={setSelectedRace}/> :
        needsBonusSelection ? (
@@ -80,7 +114,10 @@ function App() {
        <>
          <div>
            <div></div>
-           <h1>Name: Some Name</h1>
+           <CharacterNameEditor 
+             name={characterName}
+             onNameChange={setCharacterName}
+           />
            <h2 style={{ color: '#bbb', fontSize: '16px' }}>
              {selectedRace?.charAt(0).toUpperCase() + selectedRace?.slice(1)} - Level {level}
            </h2>
@@ -102,9 +139,29 @@ function App() {
                INT: {int} ({int >= 10 ? "+" : ""}{mod(int)})
                {" "}<Button onClick={() => char.level_up("int")}>Level INT</Button>
              </h3>
-             {" "}<Button onClick={handleReset}>Reset</Button>
+             <div style={{ marginTop: '16px' }}>
+               <Button onClick={handleReset} style={{ marginRight: '8px' }}>Reset</Button>
+               <Button onClick={() => setShowLoader(true)} variant="outline" style={{ marginRight: '8px' }}>
+                 Load Character
+               </Button>
+               <Button onClick={() => setShowSaver(!showSaver)} variant="outline">
+                 {showSaver ? 'Hide' : 'Save Character'}
+               </Button>
+             </div>
            </div>
            <AbilityViewer abilities={abilities} />
+           {showSaver && high && mid && selectedRace && (
+             <CharacterSaver 
+               char={char}
+               high={high}
+               mid={mid}
+               racialBonuses={racialBonuses}
+               onSave={(name) => {
+                 setCharacterName(name);
+                 setShowSaver(false);
+               }}
+             />
+           )}
          </div>
          <LogViewer />
        </>
