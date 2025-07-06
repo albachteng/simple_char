@@ -149,7 +149,6 @@ describe('Dual-Wielding Combat System', () => {
       // Equip two-handed weapon - should fail with 'Cannot equip two-handed weapon while dual-wielding. Unequip one weapon first.'
       char.inventory.equipItem(greatsword.id)
       
-	  console.log({inv: char.inventory.items});
       expect(sword.equipped).toBe(true)
       expect(sword.equipmentSlot).toBe('main-hand');
       expect(dagger.equipped).toBe(true)
