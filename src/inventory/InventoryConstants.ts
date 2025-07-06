@@ -10,7 +10,7 @@ function generateWeaponDescription(weaponType: Weapon): string {
   
   // Determine weapon handling
   const isOneHanded = weaponType === 'one-hand' || weaponType === 'finesse'
-  const isTwoHanded = weaponType === 'two-hand' || weaponType === 'staff' || weaponType === 'ranged'
+  const isTwoHanded = weaponType === 'two-hand' || weaponType === 'ranged'
   
   const handling = isOneHanded ? 'one-handed' : isTwoHanded ? 'two-handed' : 'weapon'
   const statName = stat === 'str' ? 'strength' : stat === 'dex' ? 'dexterity' : 'intelligence'

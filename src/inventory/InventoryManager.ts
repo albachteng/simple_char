@@ -19,7 +19,6 @@ export class InventoryManager {
   // Helper function to check if a weapon is two-handed
   private isTwoHandedWeapon(weapon: any): boolean {
     return weapon?.weaponType === 'two-hand' || 
-           weapon?.weaponType === 'staff' || 
            weapon?.weaponType === 'ranged'
   }
 

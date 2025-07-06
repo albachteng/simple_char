@@ -24,7 +24,6 @@ import { DiceSettings } from './utils/dice'
 function isTwoHand(weapon: Weapon) {
   return (
     weapon === 'two-hand' || 
-    weapon === 'staff' || 
     weapon === 'ranged' 
   )
 }

@@ -88,23 +88,23 @@ describe('Inventory State Management', () => {
         description: 'Basic shield'
       })
       
-      const staff = createInventoryItem({
-        name: 'Staff',
+      const greatsword = createInventoryItem({
+        name: 'Greatsword',
         type: 'weapon',
-        weaponType: 'staff',
+        weaponType: 'two-hand',
         enchantmentLevel: 0,
-        description: 'Two-handed staff'
+        description: 'Two-handed greatsword'
       })
       
       char.inventory.addItem(shield)
-      char.inventory.addItem(staff)
+      char.inventory.addItem(greatsword)
       
       // Equip shield first
       const shieldResult = char.inventory.equipItem(shield.id)
       expect(shieldResult.success).toBe(true)
       
       // Try to equip two-handed weapon - should fail
-      const weaponResult = char.inventory.equipItem(staff.id)
+      const weaponResult = char.inventory.equipItem(greatsword.id)
       expect(weaponResult.success).toBe(false)
       expect(weaponResult.errorMessage).toContain('Cannot equip two-handed weapon while using a shield')
       
@@ -176,7 +176,7 @@ describe('Inventory State Management', () => {
       expect(equippedWeapon?.weaponType).toBe('ranged')
     })
 
-    it('should validate all two-handed weapon types (two-hand, staff, ranged)', () => {
+    it('should validate all two-handed weapon types (two-hand, ranged)', () => {
       const char = new Char('str', 'dex')
       
       const shield = createInventoryItem({
@@ -188,7 +188,6 @@ describe('Inventory State Management', () => {
       
       const twoHandedWeapons = [
         { weaponType: 'two-hand', name: 'Greatsword' },
-        { weaponType: 'staff', name: 'Magic Staff' },
         { weaponType: 'ranged', name: 'Longbow' }
       ]
       
