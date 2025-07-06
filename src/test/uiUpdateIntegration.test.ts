@@ -56,6 +56,9 @@ describe('UI Update Integration', () => {
   
   it('should update AC calculation when enchanted armor is equipped', () => {
     const char = new Char('dex', 'str') // DEX focused for better AC calculation
+    char.str = 12 // Set STR to meet light armor requirement
+    char.updateInventoryStats() // Update inventory with new stats
+    
     const updateHandler = vi.fn()
     
     // Listen for update events
@@ -76,7 +79,8 @@ describe('UI Update Integration', () => {
     
     // Add and equip the enchanted armor
     char.inventory.addItem(enchantedArmor)
-    char.inventory.equipItem(enchantedArmor.id)
+    const equipResult = char.inventory.equipItem(enchantedArmor.id)
+    expect(equipResult.success).toBe(true) // Should succeed with sufficient STR
     
     // Sync equipment and trigger update
     char.syncEquipmentFromInventory()

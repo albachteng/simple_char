@@ -1,12 +1,78 @@
-import type { InventoryItem, CharacterInventory, ItemType } from '../../types'
+import type { InventoryItem, CharacterInventory, ItemType, Armor, EquipmentSlot } from '../../types'
 import { logger } from '../logger'
+import { ARMOR_STR_REQ } from '../../constants'
 
 export class InventoryManager {
   private inventory: CharacterInventory
+  private characterStats: { str: number, dex: number, int: number } | null = null
 
   constructor(initialInventory: CharacterInventory = { items: [] }) {
     this.inventory = initialInventory
     logger.equipment('InventoryManager initialized', { itemCount: this.inventory.items.length })
+  }
+
+  // Set character stats for equipment validation
+  setCharacterStats(stats: { str: number, dex: number, int: number }): void {
+    this.characterStats = stats
+  }
+
+  // Helper function to check if a weapon is two-handed
+  private isTwoHandedWeapon(weapon: any): boolean {
+    return weapon?.weaponType === 'two-hand' || 
+           weapon?.weaponType === 'staff' || 
+           weapon?.weaponType === 'ranged'
+  }
+
+  // Validate if character can equip an item
+  canEquipItem(item: InventoryItem): { canEquip: boolean, reason?: string } {
+    if (!this.characterStats) {
+      return { canEquip: true } // If no stats provided, allow equipping
+    }
+
+    // Check armor strength requirements
+    if (item.type === 'armor' && item.armorType) {
+      const requiredStr = ARMOR_STR_REQ[item.armorType as Armor]
+      if (this.characterStats.str < requiredStr) {
+        return { 
+          canEquip: false, 
+          reason: `Requires ${requiredStr} STR (you have ${this.characterStats.str})` 
+        }
+      }
+    }
+
+    // Check weapon and shield conflicts for two-handed weapons
+    if (item.type === 'weapon' && this.isTwoHandedWeapon(item)) {
+      const equippedShield = this.getEquippedItemBySlot('shield')
+      const { mainHand, offHand } = this.getEquippedWeapons()
+      
+      if (equippedShield) {
+        return {
+          canEquip: false,
+          reason: `Cannot equip two-handed weapon while using a shield. Unequip the shield first.`
+        }
+      }
+      
+      if (mainHand && offHand) {
+        return {
+          canEquip: false,
+          reason: `Cannot equip two-handed weapon while dual-wielding. Unequip one weapon first.`
+        }
+      }
+    }
+
+    // Check shield conflicts with two-handed weapons
+    if (item.type === 'shield') {
+      const { mainHand, offHand } = this.getEquippedWeapons()
+      
+      if ((mainHand && this.isTwoHandedWeapon(mainHand)) || (offHand && this.isTwoHandedWeapon(offHand))) {
+        return {
+          canEquip: false,
+          reason: `Cannot equip shield while wielding a two-handed weapon. Unequip the weapon first.`
+        }
+      }
+    }
+
+    return { canEquip: true }
   }
 
   // Get all items
@@ -24,10 +90,24 @@ export class InventoryManager {
     return this.inventory.items.filter(item => item.equipped)
   }
 
-  // Get equipped item by type (weapons/armor/shield)
+  // Get equipped item by type (weapons/armor/shield) - for backward compatibility
   getEquippedItemByType(type: ItemType): InventoryItem | null {
     const equipped = this.inventory.items.find(item => item.type === type && item.equipped)
     return equipped || null
+  }
+
+  // Get equipped item by specific slot
+  getEquippedItemBySlot(slot: EquipmentSlot): InventoryItem | null {
+    const equipped = this.inventory.items.find(item => item.equipped && item.equipmentSlot === slot)
+    return equipped || null
+  }
+
+  // Get all equipped weapons (main-hand and off-hand)
+  getEquippedWeapons(): { mainHand: InventoryItem | null, offHand: InventoryItem | null } {
+    return {
+      mainHand: this.getEquippedItemBySlot('main-hand'),
+      offHand: this.getEquippedItemBySlot('off-hand')
+    }
   }
 
   // Add item to inventory
@@ -74,33 +154,94 @@ export class InventoryManager {
   }
 
   // Equip an item
-  equipItem(itemId: string): boolean {
+  equipItem(itemId: string): { success: boolean, errorMessage?: string } {
     const item = this.inventory.items.find(item => item.id === itemId)
     if (!item) {
       logger.equipment('Cannot equip item: not found', { itemId })
-      return false
+      return { success: false, errorMessage: 'Item not found' }
     }
 
-    // Unequip other items of the same type (can only have one weapon, one armor, one shield equipped)
-    if (item.type === 'weapon' || item.type === 'armor' || item.type === 'shield') {
-      this.inventory.items.forEach(existingItem => {
-        if (existingItem.type === item.type && existingItem.equipped) {
-          existingItem.equipped = false
-          logger.equipment('Unequipped existing item', { 
-            itemName: existingItem.name,
-            itemType: existingItem.type 
-          })
-        }
+    // Validate equipment requirements
+    const validation = this.canEquipItem(item)
+    if (!validation.canEquip) {
+      logger.equipment('Cannot equip item: requirements not met', { 
+        itemName: item.name,
+        reason: validation.reason 
       })
+      return { success: false, errorMessage: validation.reason }
+    }
+
+    // Determine which slot to equip the item to and handle conflicts
+    let targetSlot: EquipmentSlot
+    
+    if (item.type === 'weapon') {
+      if (this.isTwoHandedWeapon(item)) {
+        // Two-handed weapons go to main-hand and unequip both hands
+        targetSlot = 'main-hand'
+        const { mainHand, offHand } = this.getEquippedWeapons()
+        if (mainHand) {
+          mainHand.equipped = false
+          mainHand.equipmentSlot = undefined
+          logger.equipment('Unequipped main-hand weapon for two-handed weapon', { itemName: mainHand.name })
+        }
+        if (offHand) {
+          offHand.equipped = false
+          offHand.equipmentSlot = undefined
+          logger.equipment('Unequipped off-hand weapon for two-handed weapon', { itemName: offHand.name })
+        }
+      } else {
+        // One-handed weapons: first weapon goes to main-hand, second to off-hand
+        const { mainHand, offHand } = this.getEquippedWeapons()
+        if (!mainHand) {
+          targetSlot = 'main-hand'
+        } else if (!offHand) {
+          targetSlot = 'off-hand'
+        } else {
+          // Both slots occupied, replace main-hand
+          mainHand.equipped = false
+          mainHand.equipmentSlot = undefined
+          targetSlot = 'main-hand'
+          logger.equipment('Unequipped main-hand weapon to equip new weapon', { itemName: mainHand.name })
+        }
+      }
+    } else if (item.type === 'armor') {
+      targetSlot = 'armor'
+      // Unequip existing armor
+      const existingArmor = this.getEquippedItemBySlot('armor')
+      if (existingArmor) {
+        existingArmor.equipped = false
+        existingArmor.equipmentSlot = undefined
+        logger.equipment('Unequipped existing armor', { itemName: existingArmor.name })
+      }
+    } else if (item.type === 'shield') {
+      targetSlot = 'shield'
+      // Unequip existing shield
+      const existingShield = this.getEquippedItemBySlot('shield')
+      if (existingShield) {
+        existingShield.equipped = false
+        existingShield.equipmentSlot = undefined
+        logger.equipment('Unequipped existing shield', { itemName: existingShield.name })
+      }
+    } else {
+      // Other item types (accessories, etc.) - just mark as equipped without slot
+      item.equipped = true
+      logger.equipment('Item equipped', { 
+        itemName: item.name,
+        itemType: item.type,
+        enchantmentLevel: item.enchantmentLevel 
+      })
+      return { success: true }
     }
 
     item.equipped = true
+    item.equipmentSlot = targetSlot
     logger.equipment('Item equipped', { 
       itemName: item.name,
       itemType: item.type,
+      equipmentSlot: targetSlot,
       enchantmentLevel: item.enchantmentLevel 
     })
-    return true
+    return { success: true }
   }
 
   // Unequip an item
@@ -117,6 +258,7 @@ export class InventoryManager {
     }
 
     item.equipped = false
+    item.equipmentSlot = undefined
     logger.equipment('Item unequipped', { 
       itemName: item.name,
       itemType: item.type 

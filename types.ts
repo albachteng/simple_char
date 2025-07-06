@@ -27,11 +27,14 @@ export interface ManeuverBonus {
   bonus: number
 }
 
+export type EquipmentSlot = 'main-hand' | 'off-hand' | 'armor' | 'shield'
+
 export interface InventoryItem {
   id: string
   name: string
   type: ItemType
   equipped: boolean
+  equipmentSlot?: EquipmentSlot  // Which slot the item is equipped in
   enchantmentLevel: EnchantmentLevel
   description?: string
   statBonuses?: StatBonus[]

@@ -26,7 +26,7 @@ export const WEAPON_DIE: {[K in Weapon]: number }= {
   "finesse": 6,
   "ranged": 6, 
   "staff": 4,  
-  "none": 0,
+  "none": 1,
 }
 
 export const WEAPON_STAT: {[K in Weapon]: Stat} = {

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Paper, Text, Stack, Group, Button, Badge, Modal, ScrollArea } from '@mantine/core'
+import { useState, useEffect } from 'react'
+import { Paper, Text, Stack, Group, Button, Badge, Modal, ScrollArea, Alert } from '@mantine/core'
 import type { InventoryItem, ItemType } from '../types'
 import { InventoryManager } from './inventory/InventoryManager'
 import { BASE_ITEMS, createInventoryItem } from './inventory/InventoryConstants'
@@ -171,6 +171,13 @@ function InventoryItemComponent({ item, onEquip, onUnequip, onRemove }: Inventor
 export function InventoryViewer({ inventoryManager, onInventoryChange }: InventoryViewerProps) {
   const [items, setItems] = useState<InventoryItem[]>(inventoryManager.getItems())
   const [showAddModal, setShowAddModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Refresh items when inventoryManager changes (e.g., on character reset)
+  useEffect(() => {
+    setItems(inventoryManager.getItems())
+    setErrorMessage(null) // Clear any error messages when inventory resets
+  }, [inventoryManager])
 
   const refreshItems = () => {
     setItems(inventoryManager.getItems())
@@ -178,8 +185,13 @@ export function InventoryViewer({ inventoryManager, onInventoryChange }: Invento
   }
 
   const handleEquip = (itemId: string) => {
-    inventoryManager.equipItem(itemId)
-    refreshItems()
+    const result = inventoryManager.equipItem(itemId)
+    if (result.success) {
+      setErrorMessage(null)
+      refreshItems()
+    } else {
+      setErrorMessage(result.errorMessage || 'Cannot equip item')
+    }
   }
 
   const handleUnequip = (itemId: string) => {
@@ -208,6 +220,12 @@ export function InventoryViewer({ inventoryManager, onInventoryChange }: Invento
             <Text size="lg" fw={600}>Inventory</Text>
             <Button onClick={() => setShowAddModal(true)}>Add Item</Button>
           </Group>
+
+          {errorMessage && (
+            <Alert color="red" onClose={() => setErrorMessage(null)} withCloseButton>
+              {errorMessage}
+            </Alert>
+          )}
 
           {equippedItems.length > 0 && (
             <Stack gap="sm">

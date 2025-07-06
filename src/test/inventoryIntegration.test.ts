@@ -61,7 +61,10 @@ describe('Inventory Integration', () => {
   })
   
   it('should calculate AC with equipped item bonuses', () => {
+    // Create a character with sufficient STR for light armor (requires 12 STR)
     const char = new Char('dex', 'str')
+    char.str = 12 // Manually set STR to meet requirement
+    char.updateInventoryStats() // Update inventory with new stats
     
     // Create an armor item with stat bonuses
     const enchantedArmor = createInventoryItem({
@@ -74,12 +77,36 @@ describe('Inventory Integration', () => {
     })
     
     char.inventory.addItem(enchantedArmor)
-    char.inventory.equipItem(enchantedArmor.id)
+    const equipResult = char.inventory.equipItem(enchantedArmor.id)
+    expect(equipResult.success).toBe(true) // Should succeed now
     char.syncEquipmentFromInventory()
     
     // Base AC calculation: 13 (base) + 3 (dex mod from 16) + 1 (light armor) = 17
     // With equipment bonus: 13 (base) + 4 (dex mod from 16+2) + 1 (light armor) = 18
     const ac = char.ac()
     expect(ac).toBe(18)
+  })
+
+  it('should prevent equipping armor with insufficient strength', () => {
+    const char = new Char('dex', 'str') // STR 10, DEX 16
+    
+    // Create light armor (requires 12 STR)
+    const lightArmor = createInventoryItem({
+      name: 'Light Armor',
+      type: 'armor',
+      armorType: 'light',
+      enchantmentLevel: 0,
+      description: 'Basic light armor'
+    })
+    
+    char.inventory.addItem(lightArmor)
+    const equipResult = char.inventory.equipItem(lightArmor.id)
+    
+    expect(equipResult.success).toBe(false)
+    expect(equipResult.errorMessage).toBe('Requires 12 STR (you have 10)')
+    
+    // Armor should not be equipped
+    const equippedArmor = char.inventory.getEquippedItemByType('armor')
+    expect(equippedArmor).toBeNull()
   })
 })

@@ -12,6 +12,7 @@ import { CharacterLoader } from './CharacterLoader'
 import { CharacterNameEditor } from './CharacterNameEditor'
 import { InventoryViewer } from './InventoryViewer'
 import { DiceSettingsPanel } from './DiceSettings'
+import { StatOverrideControls } from './StatOverrideControls'
 import { Stat, Race } from '../types';
 import { RACIAL_BONUS } from '../constants';
 
@@ -27,12 +28,19 @@ function App() {
     str, 
     dex, 
     int,
+    originalStr,
+    originalDex,
+    originalInt,
     // shield,
     // armor,
     sorcery_points,
     combat_maneuvers,
     finesse_points,
     abilities,
+    isUsingStatOverrides,
+    toggleStatOverrides,
+    setStatOverride,
+    getStatOverride,
   } = useChar()
 
   const [high, setHigh] = useState<null | Stat>(null);
@@ -70,13 +78,17 @@ function App() {
   };
 
   const handleReset = () => {
+    // Reset character to a new default character
+    reset('str', 'dex');
+    
+    // Reset UI state
     setHigh(null);
     setMid(null);
     setSelectedRace(null);
     setRacialBonuses([]);
     setCurrentBonusIndex(0);
     setCharacterName('');
-    setIsCharacterLoaded(false); // Reset loaded flag
+    setIsCharacterLoaded(false);
     setShowLoader(false);
     setShowSaver(false);
   };
@@ -157,6 +169,19 @@ function App() {
                INT: {int} ({int >= 10 ? "+" : ""}{mod(int)})
                {" "}<Button onClick={() => char.level_up("int")}>Level INT</Button>
              </h3>
+             
+             <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+               <StatOverrideControls
+                 isUsingOverrides={isUsingStatOverrides}
+                 originalStr={originalStr}
+                 originalDex={originalDex}
+                 originalInt={originalInt}
+                 onToggleOverrides={toggleStatOverrides}
+                 onSetStatOverride={setStatOverride}
+                 getStatOverride={getStatOverride}
+               />
+             </div>
+             
              <div style={{ marginTop: '16px' }}>
                <Button onClick={handleReset} style={{ marginRight: '8px' }}>Reset</Button>
                <Button onClick={() => setShowLoader(true)} variant="outline" style={{ marginRight: '8px' }}>
