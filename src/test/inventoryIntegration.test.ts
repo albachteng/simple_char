@@ -82,9 +82,9 @@ describe('Inventory Integration', () => {
     char.syncEquipmentFromInventory()
     
     // Base AC calculation: 13 (base) + 3 (dex mod from 16) + 1 (light armor) = 17
-    // With equipment bonus: 13 (base) + 4 (dex mod from 16+2) + 1 (light armor) = 18
+    // With equipment bonus: 13 (base) + 4 (dex mod from 16+2) + 1 (light armor) + 1 (enchantment) = 19
     const ac = char.ac()
-    expect(ac).toBe(18)
+    expect(ac).toBe(19)
   })
 
   it('should prevent equipping armor with insufficient strength', () => {

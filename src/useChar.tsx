@@ -214,7 +214,8 @@ export class Char {
     const equippedBonuses = this.getEquippedStatBonuses()
     const dex_mod = mod(effectiveStats.dex + equippedBonuses.dex)
     const shield_bonus = Number(this.shield) * SHIELD_AC;
-    const total_ac = BASE_AC + dex_mod + armor_mod + shield_bonus
+    const enchantment_bonus = this.inventory.getEquippedEnchantmentAcBonus()
+    const total_ac = BASE_AC + dex_mod + armor_mod + shield_bonus + enchantment_bonus
     
     logger.acCalculation(`Calculating AC`, {
       base_ac: BASE_AC,
@@ -226,6 +227,7 @@ export class Char {
       armor_mod,
       shield: this.shield,
       shield_bonus,
+      enchantment_bonus,
       total_ac
     })
     
@@ -548,8 +550,9 @@ export class Char {
     const effectiveStats = this.getEffectiveStats()
     const weapon_stat = WEAPON_STAT[mainHand.weaponType || 'none']
     const stat_mod = mod(effectiveStats[weapon_stat])
+    const enchantment_bonus = mainHand.enchantmentLevel || 0
     const d20_roll = DiceSettings.rollOrAverage(1, 20, 0)
-    const total_roll = d20_roll + stat_mod + this.lvl
+    const total_roll = d20_roll + stat_mod + this.lvl + enchantment_bonus
 
     logger.combat(`Main-hand attack roll with ${mainHand.name}`, {
       weapon: mainHand.name,
@@ -558,6 +561,7 @@ export class Char {
       stat_value: effectiveStats[weapon_stat],
       stat_mod,
       level: this.lvl,
+      enchantment_bonus,
       d20_roll,
       total_roll,
       using_dice: DiceSettings.getUseDiceRolls()
@@ -578,8 +582,9 @@ export class Char {
     const effectiveStats = this.getEffectiveStats()
     const weapon_stat = WEAPON_STAT[offHand.weaponType || 'none']
     const stat_mod = mod(effectiveStats[weapon_stat])
+    const enchantment_bonus = offHand.enchantmentLevel || 0
     const d20_roll = DiceSettings.rollOrAverage(1, 20, 0)
-    const total_roll = d20_roll + stat_mod // No level bonus for off-hand
+    const total_roll = d20_roll + stat_mod + enchantment_bonus // No level bonus for off-hand
 
     logger.combat(`Off-hand attack roll with ${offHand.name}`, {
       weapon: offHand.name,
@@ -587,6 +592,7 @@ export class Char {
       weapon_stat,
       stat_value: effectiveStats[weapon_stat],
       stat_mod,
+      enchantment_bonus,
       d20_roll,
       total_roll: total_roll,
       note: 'Off-hand gets no level bonus',
@@ -608,9 +614,10 @@ export class Char {
     const effectiveStats = this.getEffectiveStats()
     const weapon_stat = WEAPON_STAT[mainHand.weaponType || 'none']
     const stat_mod = mod(effectiveStats[weapon_stat])
+    const enchantment_bonus = mainHand.enchantmentLevel || 0
     const weapon_die = WEAPON_DIE[mainHand.weaponType || 'none']
     const die_roll = DiceSettings.rollOrAverage(1, weapon_die, 0)
-    const total_damage = die_roll + stat_mod
+    const total_damage = die_roll + stat_mod + enchantment_bonus
 
     logger.combat(`Main-hand damage roll with ${mainHand.name}`, {
       weapon: mainHand.name,
@@ -618,6 +625,7 @@ export class Char {
       weapon_stat,
       stat_value: effectiveStats[weapon_stat],
       stat_mod,
+      enchantment_bonus,
       weapon_die,
       die_roll,
       total_damage,
@@ -636,13 +644,15 @@ export class Char {
       return 0
     }
 
+    const enchantment_bonus = offHand.enchantmentLevel || 0
     const weapon_die = WEAPON_DIE[offHand.weaponType || 'none']
     const die_roll = DiceSettings.rollOrAverage(1, weapon_die, 0)
-    const total_damage = die_roll // No stat modifier for off-hand damage
+    const total_damage = die_roll + enchantment_bonus // No stat modifier for off-hand damage
 
     logger.combat(`Off-hand damage roll with ${offHand.name}`, {
       weapon: offHand.name,
       weapon_type: offHand.weaponType,
+      enchantment_bonus,
       weapon_die,
       die_roll,
       total_damage,

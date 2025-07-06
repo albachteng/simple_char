@@ -13,6 +13,7 @@ import { CharacterNameEditor } from './CharacterNameEditor'
 import { InventoryViewer } from './InventoryViewer'
 import { DiceSettingsPanel } from './DiceSettings'
 import { StatOverrideControls } from './StatOverrideControls'
+import { CombatActions } from './CombatActions'
 import { Stat, Race } from '../types';
 import { RACIAL_BONUS } from '../constants';
 
@@ -194,6 +195,7 @@ function App() {
            </div>
            <AbilityViewer abilities={abilities} />
            <InventoryViewer inventoryManager={char.inventory} onInventoryChange={handleInventoryChange} />
+           <CombatActions char={char} />
            <DiceSettingsPanel onSettingsChange={() => char.triggerUpdate()} />
            {showSaver && high && mid && selectedRace && (
              <CharacterSaver 

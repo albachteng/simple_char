@@ -1,4 +1,4 @@
-import type { InventoryItem, CharacterInventory, ItemType, Armor, EquipmentSlot } from '../../types'
+import type { InventoryItem, CharacterInventory, ItemType, Armor, EquipmentSlot, EnchantmentLevel } from '../../types'
 import { logger } from '../logger'
 import { ARMOR_STR_REQ } from '../../constants'
 
@@ -303,5 +303,83 @@ export class InventoryManager {
       equipped: this.inventory.items.filter(item => item.equipped).length,
       byType
     }
+  }
+
+  /**
+   * Modify the enchantment level of an item
+   */
+  modifyEnchantment(itemId: string, change: number): { success: boolean, errorMessage?: string } {
+    const item = this.inventory.items.find(i => i.id === itemId)
+    if (!item) {
+      return { success: false, errorMessage: 'Item not found' }
+    }
+
+    const newLevel = (item.enchantmentLevel || 0) + change
+    
+    // Allow enchantment levels from -3 to +3
+    if (newLevel < -3) {
+      return { success: false, errorMessage: 'Cannot enchant below -3 (maximum curse)' }
+    }
+    if (newLevel > 3) {
+      return { success: false, errorMessage: 'Cannot enchant above +3 (maximum enchantment)' }
+    }
+
+    const oldLevel = item.enchantmentLevel || 0
+    item.enchantmentLevel = newLevel as EnchantmentLevel
+
+    logger.equipment(`Enchantment modified for ${item.name}`, {
+      itemName: item.name,
+      itemType: item.type,
+      oldLevel,
+      newLevel,
+      change,
+      isEquipped: item.equipped
+    })
+
+    return { success: true }
+  }
+
+  /**
+   * Set the enchantment level of an item directly
+   */
+  setEnchantment(itemId: string, level: number): { success: boolean, errorMessage?: string } {
+    const item = this.inventory.items.find(i => i.id === itemId)
+    if (!item) {
+      return { success: false, errorMessage: 'Item not found' }
+    }
+
+    // Allow enchantment levels from -3 to +3
+    if (level < -3 || level > 3) {
+      return { success: false, errorMessage: 'Enchantment level must be between -3 and +3' }
+    }
+
+    const oldLevel = item.enchantmentLevel || 0
+    item.enchantmentLevel = level as EnchantmentLevel
+
+    logger.equipment(`Enchantment set for ${item.name}`, {
+      itemName: item.name,
+      itemType: item.type,
+      oldLevel,
+      newLevel: level,
+      isEquipped: item.equipped
+    })
+
+    return { success: true }
+  }
+
+  /**
+   * Get enchantment bonus for AC calculation (for armor and shields)
+   */
+  getEquippedEnchantmentAcBonus(): number {
+    let acBonus = 0
+    
+    for (const item of this.inventory.items) {
+      if (item.equipped && (item.type === 'armor' || item.type === 'shield')) {
+        const enchantmentLevel = item.enchantmentLevel || 0
+        acBonus += enchantmentLevel
+      }
+    }
+
+    return acBonus
   }
 }

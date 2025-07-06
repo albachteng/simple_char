@@ -3,6 +3,7 @@ import { Paper, Text, Stack, Group, Button, Badge, Modal, ScrollArea, Alert } fr
 import type { InventoryItem, ItemType } from '../types'
 import { InventoryManager } from './inventory/InventoryManager'
 import { BASE_ITEMS, createInventoryItem } from './inventory/InventoryConstants'
+import { EnchantmentControls } from './EnchantmentControls'
 
 interface InventoryViewerProps {
   inventoryManager: InventoryManager
@@ -100,9 +101,22 @@ interface InventoryItemProps {
   onEquip: (itemId: string) => void
   onUnequip: (itemId: string) => void
   onRemove: (itemId: string) => void
+  inventoryManager: InventoryManager
+  onInventoryChange?: () => void
 }
 
-function InventoryItemComponent({ item, onEquip, onUnequip, onRemove }: InventoryItemProps) {
+function InventoryItemComponent({ item, onEquip, onUnequip, onRemove, inventoryManager, onInventoryChange }: InventoryItemProps) {
+  // Get weapon slot information for display
+  const getWeaponSlotInfo = () => {
+    if (item.type !== 'weapon' || !item.equipped) return null
+    
+    const equippedWeapons = inventoryManager.getEquippedWeapons()
+    if (equippedWeapons.mainHand?.id === item.id) return 'main-hand'
+    if (equippedWeapons.offHand?.id === item.id) return 'off-hand'
+    return null
+  }
+  
+  const weaponSlot = getWeaponSlotInfo()
   return (
     <Paper p="sm" withBorder>
       <Stack gap="xs">
@@ -118,7 +132,9 @@ function InventoryItemComponent({ item, onEquip, onUnequip, onRemove }: Inventor
                 {item.type}
               </Badge>
               {item.equipped && (
-                <Badge size="xs" color="yellow">Equipped</Badge>
+                <Badge size="xs" color="yellow">
+                  {weaponSlot ? `Equipped (${weaponSlot})` : 'Equipped'}
+                </Badge>
               )}
               {item.enchantmentLevel > 0 && (
                 <Badge size="xs" color="purple">+{item.enchantmentLevel}</Badge>
@@ -147,6 +163,12 @@ function InventoryItemComponent({ item, onEquip, onUnequip, onRemove }: Inventor
                 ))}
               </Group>
             )}
+            
+            <EnchantmentControls
+              item={item}
+              inventoryManager={inventoryManager}
+              onEnchantmentChange={onInventoryChange}
+            />
           </Stack>
           <Stack gap="xs">
             {item.equipped ? (
@@ -237,6 +259,8 @@ export function InventoryViewer({ inventoryManager, onInventoryChange }: Invento
                   onEquip={handleEquip}
                   onUnequip={handleUnequip}
                   onRemove={handleRemove}
+                  inventoryManager={inventoryManager}
+                  onInventoryChange={refreshItems}
                 />
               ))}
             </Stack>
@@ -254,6 +278,8 @@ export function InventoryViewer({ inventoryManager, onInventoryChange }: Invento
                       onEquip={handleEquip}
                       onUnequip={handleUnequip}
                       onRemove={handleRemove}
+                      inventoryManager={inventoryManager}
+                      onInventoryChange={refreshItems}
                     />
                   ))}
                 </Stack>
