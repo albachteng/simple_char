@@ -65,6 +65,6 @@ export const RACIAL_BONUS = {
   }
 };
 
-const METAMAGIC = ['Aura', 'Cascade', 'Cloak', 'Distant', 'Empowered', 'Glyph', 'Grasp', 'Heighten', 'Hypnotic', 'Orb', 'Orbit', 'Precise', 'Quick', 'Sculpt', 'Subtle', 'Twin', 'Wall'];
-const SPELLWORDS = ['Chill', 'Confound', 'Counterspell', 'Deafen', 'Flametongue', 'Growth', 'Heat', 'Illusion', 'Light', 'Mend', 'Push/Pull', 'Rain', 'Reflect', 'Shadow', 'Shield', 'Soothe', 'Spark', 'Thread', 'Vision'];
-const COMBAT_MANEUVERS =  ['Blinding', 'Cleave', 'Command', 'Daring', 'Disarming', 'Enraged', 'Goading', 'Grappling', 'Leaping', 'Menace', 'Precision', 'Preparation', 'Reckless', 'Riposte', 'Stampede', 'Throw', 'Trip'];
+export const METAMAGIC = ['Aura', 'Cascade', 'Cloak', 'Distant', 'Empowered', 'Glyph', 'Grasp', 'Heighten', 'Hypnotic', 'Orb', 'Orbit', 'Precise', 'Quick', 'Sculpt', 'Subtle', 'Twin', 'Wall'];
+export const SPELLWORDS = ['Chill', 'Confound', 'Counterspell', 'Deafen', 'Flametongue', 'Growth', 'Heat', 'Illusion', 'Light', 'Mend', 'Push/Pull', 'Rain', 'Reflect', 'Shadow', 'Shield', 'Soothe', 'Spark', 'Thread', 'Vision'];
+export const COMBAT_MANEUVERS =  ['Blinding', 'Cleave', 'Command', 'Daring', 'Disarming', 'Enraged', 'Goading', 'Grappling', 'Leaping', 'Menace', 'Precision', 'Preparation', 'Reckless', 'Riposte', 'Stampede', 'Throw', 'Trip'];

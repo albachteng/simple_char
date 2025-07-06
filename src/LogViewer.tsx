@@ -7,7 +7,7 @@ export function LogViewer() {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [selectedLevel, setSelectedLevel] = useState<LogLevel | 'all'>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
 
   const refreshLogs = () => {
     setLogs(logger.getLogs())
@@ -55,14 +55,14 @@ export function LogViewer() {
       <Stack gap="sm">
         <Group justify="space-between">
           <Group>
-            <Text size="lg" fw={600}>Game Log</Text>
+            <Text size="lg" fw={600}>Debug Log</Text>
             <Text size="xs" c="dimmed">({filteredLogs.length} entries)</Text>
           </Group>
           <Group>
             <Button size="xs" variant="light" onClick={refreshLogs}>↻</Button>
             <Button size="xs" variant="light" color="red" onClick={clearLogs}>Clear</Button>
             <ActionIcon 
-              size="sm" 
+              size="md" 
               variant="light" 
               onClick={() => setIsOpen(!isOpen)}
               style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
@@ -110,6 +110,7 @@ export function LogViewer() {
                 ) : (
                   filteredLogs.slice(-50).map((log, index) => (
                     <div key={index} style={{ 
+					  textAlign: "left",
                       fontSize: '11px', 
                       fontFamily: 'monospace',
                       padding: '4px 8px',

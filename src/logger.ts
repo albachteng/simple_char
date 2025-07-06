@@ -62,7 +62,7 @@ class Logger {
 
   // Character creation and stats
   charCreation(message: string, data?: any) {
-    this.log('info', 'char-creation', message, data)
+    this.log('info', 'creation', message, data)
   }
 
   statCalculation(message: string, data?: any) {

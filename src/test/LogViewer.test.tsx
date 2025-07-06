@@ -21,7 +21,7 @@ describe('LogViewer component', () => {
   it('should render log viewer with title', () => {
     renderWithMantine(<LogViewer />)
     
-    expect(screen.getByText('Game Log')).toBeInTheDocument()
+    expect(screen.getByText('Debug Log')).toBeInTheDocument()
     expect(screen.getByText('Clear')).toBeInTheDocument()
   })
 
@@ -44,12 +44,12 @@ describe('LogViewer component', () => {
     expect(screen.getByText('Test info message')).toBeInTheDocument()
   })
 
-  it('should be collapsible', async () => {
+  it('should be expandable/collapsible', async () => {
     const user = userEvent.setup()
     renderWithMantine(<LogViewer />)
     
-    // Find the collapse button by aria-label
-    const collapseButton = screen.getByLabelText('Collapse log viewer')
+    // Find the expand button by aria-label
+    const collapseButton = screen.getByLabelText('Expand log viewer')
     await user.click(collapseButton)
     
     // The filters should be hidden when collapsed

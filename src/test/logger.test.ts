@@ -14,7 +14,7 @@ describe('Logger', () => {
     
     const log = logs[0]
     expect(log.level).toBe('info')
-    expect(log.category).toBe('char-creation')
+    expect(log.category).toBe('creation')
     expect(log.message).toBe('Test character creation')
     expect(log.data).toEqual({ str: 16 })
     expect(log.timestamp).toBeDefined()

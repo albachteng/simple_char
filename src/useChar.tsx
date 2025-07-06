@@ -19,7 +19,7 @@ import {
 import { useEffect, useState } from 'react'
 import { logger } from './logger'
 import { InventoryManager } from './inventory/InventoryManager'
-import { DiceSettings, rollDie } from './utils/dice'
+import { DiceSettings } from './utils/dice'
 
 function isTwoHand(weapon: Weapon) {
   return (
@@ -118,7 +118,7 @@ export class Char {
       abilities: this.abilities,
       level: this.lvl,
       hp: this.hp,
-	  combat_maneuvers: this.maneuvers(this.str),
+	  combat_maneuvers: this.maneuvers('str'),
       sorcery_points: this.sorcery_points,
       finesse_points: this.finesse_points
     })

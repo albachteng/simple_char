@@ -102,7 +102,7 @@ describe('Dice Integration with Character System', () => {
       DiceSettings.setUseDiceRolls(false)
       
       const char = new Char('dex', 'str')
-      char.equip_weapon('light')
+      char.equip_weapon('finesse')
       
       // Need finesse points for sneak attack
       if (char.finesse_points > 0) {
@@ -118,7 +118,7 @@ describe('Dice Integration with Character System', () => {
       DiceSettings.setUseDiceRolls(true)
       
       const char = new Char('dex', 'str')
-      char.equip_weapon('light')
+      char.equip_weapon('finesse')
       
       // Level up to get more finesse points for better testing
       char.level_up('dex')
