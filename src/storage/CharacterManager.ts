@@ -152,6 +152,14 @@ export class CharacterManager {
       char.syncEquipmentFromInventory()
     }
     
+    // Restore stat modifiers
+    if (data.useStatOverrides && data.statModifiers) {
+      char.toggleStatOverrides() // Enable overrides
+      char.setStatModifier('str', data.statModifiers.str)
+      char.setStatModifier('dex', data.statModifiers.dex)
+      char.setStatModifier('int', data.statModifiers.int)
+    }
+    
     // Validate the reconstruction
     const isValid = this.validateCharacterHash(char, savedChar.name, savedChar.hash)
     if (!isValid) {

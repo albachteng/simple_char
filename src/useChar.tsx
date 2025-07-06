@@ -56,9 +56,9 @@ export class Char {
   abilities: string[]
   inventory: InventoryManager
   
-  // Stat override system
+  // Stat override system - these are bonuses/penalties, not absolute values
   private useStatOverrides: boolean = false
-  private statOverrides: { str: number, dex: number, int: number } = { str: 10, dex: 10, int: 10 }
+  private statModifiers: { str: number, dex: number, int: number } = { str: 0, dex: 0, int: 0 }
   constructor(high: Stat, med: Stat, race: Race | null = null, racialBonuses: Stat[] = []) {
     logger.charCreation(`Creating new character with high stat: ${high}, medium stat: ${med}, race: ${race || 'none'}`)
     
@@ -343,7 +343,11 @@ export class Char {
   // Stat override system methods
   getEffectiveStats(): { str: number, dex: number, int: number } {
     if (this.useStatOverrides) {
-      return { ...this.statOverrides }
+      return { 
+        str: Math.max(0, Math.min(30, this.str + this.statModifiers.str)),
+        dex: Math.max(0, Math.min(30, this.dex + this.statModifiers.dex)),
+        int: Math.max(0, Math.min(30, this.int + this.statModifiers.int))
+      }
     }
     return { str: this.str, dex: this.dex, int: this.int }
   }
@@ -355,11 +359,6 @@ export class Char {
   toggleStatOverrides(): void {
     this.useStatOverrides = !this.useStatOverrides
     
-    // When enabling overrides, initialize with current stats
-    if (this.useStatOverrides) {
-      this.statOverrides = { str: this.str, dex: this.dex, int: this.int }
-    }
-    
     // Update inventory with current effective stats
     this.updateInventoryStats()
     this.emitter.emit("update")
@@ -367,27 +366,45 @@ export class Char {
     logger.charCreation(`Stat overrides ${this.useStatOverrides ? 'enabled' : 'disabled'}`, {
       useOverrides: this.useStatOverrides,
       originalStats: { str: this.str, dex: this.dex, int: this.int },
-      overrideStats: this.statOverrides
+      statModifiers: this.statModifiers
     })
   }
 
-  setStatOverride(stat: Stat, value: number): void {
+  setStatModifier(stat: Stat, modifier: number): void {
     if (this.useStatOverrides) {
-      this.statOverrides[stat] = Math.max(1, Math.min(30, value)) // Clamp between 1-30
+      // Calculate what the final stat would be
+      const originalStat = this[stat]
+      const finalStat = originalStat + modifier
+      
+      // Clamp the final result between 0-30, then calculate the actual modifier
+      const clampedFinalStat = Math.max(0, Math.min(30, finalStat))
+      const actualModifier = clampedFinalStat - originalStat
+      
+      this.statModifiers[stat] = actualModifier
       this.updateInventoryStats()
       this.emitter.emit("update")
       
-      logger.charCreation(`Set ${stat} override to ${value}`, {
+      logger.charCreation(`Set ${stat} modifier to ${modifier}`, {
         stat,
-        value,
-        clampedValue: this.statOverrides[stat],
-        allOverrides: this.statOverrides
+        originalValue: originalStat,
+        requestedModifier: modifier,
+        actualModifier,
+        finalStat: clampedFinalStat
       })
     }
   }
 
+  getStatModifier(stat: Stat): number {
+    return this.statModifiers[stat]
+  }
+
+  // Legacy method name for compatibility
+  setStatOverride(stat: Stat, modifier: number): void {
+    this.setStatModifier(stat, modifier)
+  }
+
   getStatOverride(stat: Stat): number {
-    return this.statOverrides[stat]
+    return this.getStatModifier(stat)
   }
 
   // Get maneuver bonuses from equipped items

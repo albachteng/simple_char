@@ -21,7 +21,13 @@ export class CharacterHasher {
       shield: char.shield,
       hp_rolls: char.hp_rolls,
       level_up_choices: char.level_up_choices,
-      inventory: char.inventory.getInventory()
+      inventory: char.inventory.getInventory(),
+      useStatOverrides: char.isUsingStatOverrides(),
+      statModifiers: {
+        str: char.getStatModifier('str'),
+        dex: char.getStatModifier('dex'),
+        int: char.getStatModifier('int')
+      }
     }
     
     // Simple hash function using character data
@@ -49,7 +55,13 @@ export class CharacterHasher {
         armor: char.armor,
         weapon: char.weapon,
         shield: char.shield,
-        inventory: char.inventory.getInventory()
+        inventory: char.inventory.getInventory(),
+        useStatOverrides: char.isUsingStatOverrides(),
+        statModifiers: {
+          str: char.getStatModifier('str'),
+          dex: char.getStatModifier('dex'),
+          int: char.getStatModifier('int')
+        }
       },
       timestamp: Date.now()
     }

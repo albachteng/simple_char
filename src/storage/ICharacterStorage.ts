@@ -13,6 +13,12 @@ export interface SavedCharacter {
     weapon: string
     shield: boolean
     inventory: any // Store the full inventory data
+    useStatOverrides?: boolean // Optional for backward compatibility
+    statModifiers?: { // Optional for backward compatibility
+      str: number
+      dex: number
+      int: number
+    }
   }
   timestamp: number
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Button, Group, NumberInput, Text, Box, Stack } from '@mantine/core'
+import { Button, Group, Text, Box, Stack } from '@mantine/core'
 import type { Stat } from '../types'
+import { CustomNumberInput } from './components/CustomNumberInput'
 
 interface StatOverrideControlsProps {
   isUsingOverrides: boolean
@@ -28,7 +29,7 @@ export function StatOverrideControls({
   })
 
   const handleValueChange = (stat: Stat, value: number | string) => {
-    const numValue = typeof value === 'string' ? parseInt(value, 10) || 1 : value
+    const numValue = typeof value === 'string' ? parseInt(value, 10) || 0 : value
     setPendingValues(prev => ({ ...prev, [stat]: numValue }))
     onSetStatOverride(stat, numValue)
   }
@@ -46,55 +47,58 @@ export function StatOverrideControls({
         </Button>
         {isUsingOverrides && (
           <Text size="sm" c="dimmed">
-            Override mode enabled - showing modified stats
+            Stat modifier mode enabled - add/subtract from base stats
           </Text>
         )}
       </Group>
 
       {isUsingOverrides && (
-        <Stack gap="xs" mb="md">
+        <Stack style={{display: 'flex', flexDirection: 'row'}}gap="xs" mb="md">
           <Group>
-            <Text w={80} size="sm">STR Override:</Text>
-            <NumberInput
+            <Text w={80} size="sm">STR Modifier:</Text>
+            <CustomNumberInput
               value={pendingValues.str}
               onChange={(value) => handleValueChange('str', value)}
-              min={1}
-              max={30}
+              min={-originalStr}
+              max={30 - originalStr}
               size="sm"
               w={80}
+              allowNegative={true}
             />
             <Text size="sm" c="dimmed">
-              (Original: {originalStr})
+              (Base: {originalStr} → {originalStr + pendingValues.str})
             </Text>
           </Group>
 
           <Group>
-            <Text w={80} size="sm">DEX Override:</Text>
-            <NumberInput
+            <Text w={80} size="sm">DEX Modifier:</Text>
+            <CustomNumberInput
               value={pendingValues.dex}
               onChange={(value) => handleValueChange('dex', value)}
-              min={1}
-              max={30}
+              min={-originalDex}
+              max={30 - originalDex}
               size="sm"
               w={80}
+              allowNegative={true}
             />
             <Text size="sm" c="dimmed">
-              (Original: {originalDex})
+              (Base: {originalDex} → {originalDex + pendingValues.dex})
             </Text>
           </Group>
 
           <Group>
-            <Text w={80} size="sm">INT Override:</Text>
-            <NumberInput
+            <Text w={80} size="sm">INT Modifier:</Text>
+            <CustomNumberInput
               value={pendingValues.int}
               onChange={(value) => handleValueChange('int', value)}
-              min={1}
-              max={30}
+              min={-originalInt}
+              max={30 - originalInt}
               size="sm"
               w={80}
+              allowNegative={true}
             />
             <Text size="sm" c="dimmed">
-              (Original: {originalInt})
+              (Base: {originalInt} → {originalInt + pendingValues.int})
             </Text>
           </Group>
         </Stack>

@@ -92,8 +92,10 @@ export function CharacterSaver({ char, high, mid, racialBonuses, onSave }: Chara
           />
 
           <Button 
+			autoContrast={true}
             onClick={handleSave} 
-            disabled={!name.trim() || saving}
+			color={"red"}
+            disabled={saving}
             loading={saving}
             style={{ alignSelf: 'flex-start' }}
           >
