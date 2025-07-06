@@ -14,11 +14,27 @@ All notable changes to this project will be documented in this file.
 - **LogViewer component** - Real-time log display with filtering by level and category
 - **Improved LogViewer UI** - Collapsible interface, monospace font, auto-refresh, subtle styling
 - Detailed logging for: character creation, stat calculations, HP rolls, AC calculations, level ups, equipment changes, combat attacks, and maneuvers
+- **Racial bonus system** - Character races with unique abilities and stat bonuses (Human, Elf, Dwarf, Halfling, Gnome, Half-Orc, Tiefling, Dragonborn)
+- **Local storage character persistence** - Save/load multiple characters with unique names
+- **Character name editor** - Double-click to edit character names with validation
+- **Stat override system** - Debug feature allowing temporary stat modifications with additive bonuses/penalties
+- **Comprehensive inventory management** - Full equipment system with slot-based dual-wielding
+- **Equipment stat bonuses** - Items can provide stat modifications and maneuver bonuses
+- **Dice rolling system** - Toggle between random rolls and average values for consistency
+- **Dual-wielding combat** - Main-hand and off-hand weapon slots with different mechanics
+- **Individual combat actions** - Separate attack and damage roll buttons for each equipped weapon
+- **Combat calculation breakdowns** - Detailed roll summaries showing all modifiers (e.g., "10 (1d20) + 3 (STR modifier) + 1 (level)")
+- **CustomNumberInput component** - Replacement for problematic Mantine NumberInput with keyboard controls
+- **Enchantment system** - Items can be enchanted from -3 (cursed) to +3 (maximum) affecting combat and AC
 
 ### Changed
 - Updated CLAUDE.md with testing documentation and planned features
 - **App layout** - Split into two columns with character sheet and log viewer
 - All character calculations now include verbose logging with before/after states
+- **Stat overrides to additive modifiers** - Changed from absolute value replacement to bonus/penalty system with 0-30 clamping
+- **Equipment slots reworked** - Added main-hand/off-hand weapon distinction with visual indicators
+- **Combat mechanics enhanced** - Off-hand attacks get no level bonus, off-hand damage gets no stat modifier
+- **AC calculation improved** - Now includes equipment stat bonuses and enchantment bonuses
 
 ### Fixed
 - Corrected maneuvers calculation for STR stat: now returns character level when STR >= 16, instead of level modifier
@@ -30,12 +46,15 @@ All notable changes to this project will be documented in this file.
 - **Fixed chevron positioning** - Removed problematic global flexbox layout, simplified to grid-based approach for better component control
 - **MAJOR: Replaced Mantine Select with custom component** - Built reliable CustomSelect from scratch to eliminate layout issues entirely
 - **Improved contrast and readability** - Updated CustomSelect and log colors for dark theme compatibility with high-contrast text
+- **Fixed inventory state management** - Resolved equipment conflicts and character reset issues
+- **Fixed stat override state persistence** - Override states now properly activate on load and respond immediately to toggle
+- **Fixed NumberInput layout issues** - Custom component eliminates Mantine layout problems
 
 ### Technical Details
 - Added dependencies: vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, jsdom
 - Created vitest.config.ts with React plugin and jsdom environment
 - Created test setup file with matchMedia mock for Mantine compatibility
-- Test files: src/test/useChar.test.ts, src/test/Picker.test.tsx, src/test/logger.test.ts
+- Test files: src/test/useChar.test.ts, src/test/Picker.test.tsx, src/test/logger.test.ts, src/test/enchantment.test.ts
 - **Logger architecture**: Category-based logging with multiple levels (debug, info, warn, error)
 - **Logging integration**: All character methods now include detailed logging with data snapshots
 - LogViewer UI component with real-time filtering and log management
@@ -46,6 +65,14 @@ All notable changes to this project will be documented in this file.
 - **Bundle Size Reduction**: Removed complex Mantine Select dependencies, reduced build size by ~76KB
 - **Dark Theme Colors**: CustomSelect uses #2a2a2a background, #e0e0e0 text, #555 borders with #646cff focus states
 - **Enhanced Log Readability**: Updated log level colors (#4a9eff, #ffb347, #ff6b6b) and alternating row backgrounds (#333/#2a2a2a)
+- **Race system architecture**: RACIAL_BONUS constant with flexible stat assignment including "any" stat bonuses
+- **Character storage format**: Extended ICharacterStorage with race, abilities, level choices, and inventory data
+- **Inventory system design**: InventoryManager with slot-based equipment, validation, and stat bonus calculations
+- **Equipment slot types**: main-hand, off-hand, armor, shield with conflict resolution
+- **CustomNumberInput implementation**: Keyboard navigation (arrow keys), focus states, value clamping, negative number support
+- **EnchantmentControls component**: Modal interface with +1/-1 buttons, reset functionality, and detailed descriptions
+- **Comprehensive test coverage**: 141 tests across 24 test files covering all major functionality
+- **Type safety improvements**: EnchantmentLevel type (-3 to 3), EquipmentSlot type, enhanced inventory types
 
 ---
 
