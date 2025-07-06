@@ -4,21 +4,26 @@ import {
   ARMOR_MODS, 
   ARMOR_STR_REQ, 
   BASE_AC, 
+  BASE_ATTACKS,
+  DBL_SPELLCASTING_INT,
   HIT_DICE_FROM_MOD, 
   LEVEL_UP_STAT_INCREASE,  
+  MIN_SPELLCASTING_INT,
+  MIN_FINESSE_DEX,
   SNEAK_ATTACK_DIE,
   WEAPON_DIE,
   WEAPON_STAT,
-  RACIAL_BONUS
+  RACIAL_BONUS,
+  SHIELD_AC
 } from '../constants'
 import { useEffect, useState } from 'react'
 import { logger } from './logger'
 import { InventoryManager } from './inventory/InventoryManager'
+import { DiceSettings, rollDie } from './utils/dice'
 
 function isTwoHand(weapon: Weapon) {
   return (
     weapon === 'two-hand' || 
-    // weapon === 'polearm' || 
     weapon === 'staff' || 
     weapon === 'ranged' 
   )
@@ -113,6 +118,7 @@ export class Char {
       abilities: this.abilities,
       level: this.lvl,
       hp: this.hp,
+	  combat_maneuvers: this.maneuvers(this.str),
       sorcery_points: this.sorcery_points,
       finesse_points: this.finesse_points
     })
@@ -154,19 +160,18 @@ export class Char {
   roll_hp() {
     const str_mod = mod(this.str) > 0 ? mod(this.str) : 0
     const hit_dice = HIT_DICE_FROM_MOD[str_mod - 1] || 4
-    // const curr_roll = Math.ceil(Math.random() * hit_dice) + str_mod
-    const curr_roll = (hit_dice/2) + str_mod
-    const final_roll = curr_roll || 1
+    const hp_roll = DiceSettings.rollOrAverage(1, hit_dice, str_mod)
+    const final_roll = hp_roll || 1
     
     logger.hpCalculation(`Rolling HP for level ${this.lvl}`, {
       str: this.str,
       str_mod,
       hit_dice,
-      base_roll: hit_dice/2,
+      hp_roll,
       str_bonus: str_mod,
-      total_roll: curr_roll,
       final_roll,
-      previous_hp: this.hp
+      previous_hp: this.hp,
+      using_dice: DiceSettings.getUseDiceRolls()
     })
     
     this.hp_rolls.push(final_roll)
@@ -177,14 +182,28 @@ export class Char {
 
   hide() {
     const factor = (this.dex >= 16 && this.armor !== 'heavy') ? 2 : 1;
-    Math.ceil(Math.random() * 20) + mod(this.dex) + (this.lvl * factor);
+    const dex_mod = mod(this.dex)
+    const level_bonus = this.lvl * factor
+    const hide_roll = DiceSettings.rollOrAverage(1, 20, dex_mod + level_bonus)
+    
+    logger.combat(`Hide roll`, {
+      dex: this.dex,
+      dex_mod,
+      level: this.lvl,
+      factor,
+      level_bonus,
+      total_roll: hide_roll,
+      using_dice: DiceSettings.getUseDiceRolls()
+    })
+    
+    return hide_roll
   }
 
   ac() {
     const armor_mod = ARMOR_MODS[this.armor] || 0
     const equippedBonuses = this.getEquippedStatBonuses()
     const dex_mod = mod(this.dex + equippedBonuses.dex)
-    const shield_bonus = Number(this.shield)
+    const shield_bonus = Number(this.shield) * SHIELD_AC;
     const total_ac = BASE_AC + dex_mod + armor_mod + shield_bonus
     
     logger.acCalculation(`Calculating AC`, {
@@ -222,15 +241,15 @@ export class Char {
     this.level_up_choices.push(choice) // Track the choice
     this.roll_hp()
     
-    if (this.int > 10) {
+    if (this.int >= MIN_SPELLCASTING_INT) {
       this.sorcery_points++ 
       logger.levelUp(`Gained sorcery point (INT > 10)`, { int: this.int, sorcery_points: this.sorcery_points })
     }
-    if (this.int > 14) {
+    if (this.int > DBL_SPELLCASTING_INT) {
       this.sorcery_points++
       logger.levelUp(`Gained additional sorcery point (INT > 14)`, { int: this.int, sorcery_points: this.sorcery_points })
     }
-    if (this.dex >= 16 && this.lvl % 2) {
+    if (this.dex >= MIN_FINESSE_DEX && this.lvl % 2) {
       this.finesse_points++
       logger.levelUp(`Gained finesse point (DEX >= 16 and odd level)`, { 
         dex: this.dex, 
@@ -390,7 +409,7 @@ export class Char {
     const weapon_stat = WEAPON_STAT[this.weapon]
     const stat_mod = mod(this[weapon_stat])
     const dmg_mod = stat_mod + this.lvl
-    const attacks = 2
+    const attacks = BASE_ATTACKS;
     const weapon_die = WEAPON_DIE[this.weapon]
     let total = 0
     
@@ -406,8 +425,7 @@ export class Char {
     })
     
     for (let i = 0; i < attacks; i++) {
-      // total += Math.ceil(Math.random() * weapon_die);
-      const die_roll = weapon_die/2
+      const die_roll = DiceSettings.rollOrAverage(1, weapon_die, 0)
       total += die_roll
       total += dmg_mod 
       
@@ -415,7 +433,8 @@ export class Char {
         die_roll,
         dmg_mod,
         attack_total: die_roll + dmg_mod,
-        running_total: total
+        running_total: total,
+        using_dice: DiceSettings.getUseDiceRolls()
       })
     }
     
@@ -431,14 +450,14 @@ export class Char {
     let total = this.weapon_attack()
     
     for (let i = 0; i < this.finesse_points; i++){
-      // total += Math.ceil(Math.random() * SNEAK_ATTACK_DIE);
-      const sneak_die = SNEAK_ATTACK_DIE/2
+      const sneak_die = DiceSettings.rollOrAverage(1, SNEAK_ATTACK_DIE, 0)
       total += sneak_die
       
       logger.combat(`Sneak attack die ${i + 1}`, {
         die_roll: sneak_die,
         die_size: SNEAK_ATTACK_DIE,
-        running_total: total
+        running_total: total,
+        using_dice: DiceSettings.getUseDiceRolls()
       })
     }
     
@@ -476,7 +495,7 @@ export const level10 = (name: string, levels: Stat[], high: Stat, med: Stat, wea
 
 export function useChar() {
   const [char, setChar] = useState(() => new Char("str", "dex"))
-  const [, setTrigger] = useState(0); 
+  const [_, setTrigger] = useState(0); 
 
   useEffect(() => {
     const handleUpdate = () => setTrigger((prev) => prev + 1)

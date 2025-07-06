@@ -1,5 +1,5 @@
 import type { InventoryItem, Weapon, Armor } from '../../types'
-import { WEAPON_DIE, WEAPON_STAT, ARMOR_MODS } from '../../constants'
+import { WEAPON_DIE, WEAPON_STAT, ARMOR_MODS, SHIELD_AC } from '../../constants'
 
 // Description generation functions
 function generateWeaponDescription(weaponType: Weapon): string {
@@ -29,7 +29,7 @@ function generateArmorDescription(armorType: Armor): string {
 }
 
 function generateShieldDescription(): string {
-  return 'A shield that provides +1 AC when equipped'
+  return `A shield that provides +${SHIELD_AC} AC when equipped`;
 }
 
 // Base weapon items

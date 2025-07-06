@@ -11,6 +11,7 @@ import { CharacterSaver } from './CharacterSaver'
 import { CharacterLoader } from './CharacterLoader'
 import { CharacterNameEditor } from './CharacterNameEditor'
 import { InventoryViewer } from './InventoryViewer'
+import { DiceSettingsPanel } from './DiceSettings'
 import { Stat, Race } from '../types';
 import { RACIAL_BONUS } from '../constants';
 
@@ -168,6 +169,7 @@ function App() {
            </div>
            <AbilityViewer abilities={abilities} />
            <InventoryViewer inventoryManager={char.inventory} onInventoryChange={handleInventoryChange} />
+           <DiceSettingsPanel onSettingsChange={() => char.triggerUpdate()} />
            {showSaver && high && mid && selectedRace && (
              <CharacterSaver 
                char={char}

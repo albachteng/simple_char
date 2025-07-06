@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { Char } from '../useChar'
-import { createInventoryItem, BASE_WEAPONS, BASE_ARMOR } from '../inventory/InventoryConstants'
+import { createInventoryItem, BASE_ARMOR } from '../inventory/InventoryConstants'
 
 describe('UI Update Integration', () => {
   it('should trigger update event when triggerUpdate is called', () => {
