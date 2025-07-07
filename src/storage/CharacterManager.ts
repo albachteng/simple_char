@@ -160,6 +160,11 @@ export class CharacterManager {
       char.setStatModifier('int', data.statModifiers.int)
     }
     
+    // Restore pending level-up points (for backward compatibility, default to 0)
+    if (data.pending_level_up_points !== undefined) {
+      char.pending_level_up_points = data.pending_level_up_points
+    }
+    
     // Validate the reconstruction
     const isValid = this.validateCharacterHash(char, savedChar.name, savedChar.hash)
     if (!isValid) {

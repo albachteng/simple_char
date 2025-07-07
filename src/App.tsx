@@ -38,6 +38,9 @@ function App() {
     combat_maneuvers,
     finesse_points,
     abilities,
+    pending_level_up_points,
+    start_level_up,
+    allocate_point,
     isUsingStatOverrides,
     toggleStatOverrides,
     setStatOverride,
@@ -158,17 +161,66 @@ function App() {
              <h3>Maneuvers: {combat_maneuvers}</h3>
              <h3>Finesse: {finesse_points}</h3>
              <h3>Sorcery: {sorcery_points}</h3>
+             {pending_level_up_points > 0 ? (
+               <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
+                 <h4 style={{ color: '#ffb347', margin: '0 0 8px 0' }}>
+                   Level Up in Progress - {pending_level_up_points} point{pending_level_up_points !== 1 ? 's' : ''} remaining
+                 </h4>
+                 <div style={{ display: 'flex', gap: '8px' }}>
+                   <Button 
+                     size="sm" 
+                     variant="outline" 
+                     onClick={() => allocate_point("str")}
+                     disabled={pending_level_up_points <= 0}
+                   >
+                     +1 STR
+                   </Button>
+                   <Button 
+                     size="sm" 
+                     variant="outline" 
+                     onClick={() => allocate_point("dex")}
+                     disabled={pending_level_up_points <= 0}
+                   >
+                     +1 DEX
+                   </Button>
+                   <Button 
+                     size="sm" 
+                     variant="outline" 
+                     onClick={() => allocate_point("int")}
+                     disabled={pending_level_up_points <= 0}
+                   >
+                     +1 INT
+                   </Button>
+                 </div>
+               </div>
+             ) : null}
+             
              <h3>
                STR: {str} ({str >= 10 ? "+" : ""}{mod(str)}) 
-               {" "}<Button onClick={() => char.level_up("str")}>Level STR</Button>
+               {pending_level_up_points === 0 && (
+                 <>
+                   {" "}<Button onClick={() => char.level_up("str")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
+                   {" "}<Button onClick={() => start_level_up()} variant="outline" size="sm">Split</Button>
+                 </>
+               )}
              </h3>
              <h3>
                DEX: {dex} ({dex >= 10 ? "+" : ""}{mod(dex)})
-               {" "}<Button onClick={() => char.level_up("dex")}>Level DEX</Button>
+               {pending_level_up_points === 0 && (
+                 <>
+                   {" "}<Button onClick={() => char.level_up("dex")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
+                   {" "}<Button onClick={() => start_level_up()} variant="outline" size="sm">Split</Button>
+                 </>
+               )}
              </h3>
              <h3>
                INT: {int} ({int >= 10 ? "+" : ""}{mod(int)})
-               {" "}<Button onClick={() => char.level_up("int")}>Level INT</Button>
+               {pending_level_up_points === 0 && (
+                 <>
+                   {" "}<Button onClick={() => char.level_up("int")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
+                   {" "}<Button onClick={() => start_level_up()} variant="outline" size="sm">Split</Button>
+                 </>
+               )}
              </h3>
              
              <div style={{ marginTop: '16px', marginBottom: '16px' }}>

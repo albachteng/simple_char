@@ -47,6 +47,7 @@ export class Char {
   hp: number
   hp_rolls: number[]
   level_up_choices: Stat[] // Track which stat was chosen at each level
+  pending_level_up_points: number // Track remaining level-up points to allocate
   shield: boolean
   armor: Armor
   weapon: Weapon
@@ -103,6 +104,7 @@ export class Char {
     this.hp = 10
     this.hp_rolls = [10]
     this.level_up_choices = [] // Start empty - level 1 doesn't have choices
+    this.pending_level_up_points = 0 // No pending points at character creation
     this.shield = false
     this.armor = "none"
     this.weapon = "none"
@@ -234,6 +236,93 @@ export class Char {
     return total_ac
   }
 
+  // Start a new level-up, granting 2 points to allocate
+  start_level_up() {
+    if (this.pending_level_up_points > 0) {
+      logger.levelUp(`Cannot start level up - already have ${this.pending_level_up_points} pending points`)
+      return false
+    }
+    
+    const old_level = this.lvl
+    this.lvl += 1
+    this.pending_level_up_points = LEVEL_UP_STAT_INCREASE
+    this.roll_hp()
+    
+    logger.levelUp(`Started level up from ${old_level} to ${this.lvl}`, {
+      old_level,
+      new_level: this.lvl,
+      pending_points: this.pending_level_up_points
+    })
+    
+    this.emitter.emit("update")
+    return true
+  }
+  
+  // Allocate a single point to a stat
+  allocate_point(choice: Stat) {
+    if (this.pending_level_up_points <= 0) {
+      logger.levelUp(`Cannot allocate point - no pending points available`)
+      return false
+    }
+    
+    const old_stat = this[choice]
+    this[choice] += 1
+    this.pending_level_up_points -= 1
+    this.level_up_choices.push(choice) // Track each individual choice
+    
+    logger.levelUp(`Allocated 1 point to ${choice}`, {
+      stat: choice,
+      old_value: old_stat,
+      new_value: this[choice],
+      remaining_points: this.pending_level_up_points
+    })
+    
+    // Check for stat-based bonuses when allocation is complete
+    if (this.pending_level_up_points === 0) {
+      this.finalize_level_up()
+    }
+    
+    // Update inventory with new stats
+    this.updateInventoryStats()
+    this.emitter.emit("update")
+    return true
+  }
+  
+  // Finalize level-up and grant any stat-based bonuses
+  private finalize_level_up() {
+    const old_sorcery = this.sorcery_points
+    const old_finesse = this.finesse_points
+    
+    if (this.int >= MIN_SPELLCASTING_INT) {
+      this.sorcery_points++ 
+      logger.levelUp(`Gained sorcery point (INT > 10)`, { int: this.int, sorcery_points: this.sorcery_points })
+    }
+    if (this.int > DBL_SPELLCASTING_INT) {
+      this.sorcery_points++
+      logger.levelUp(`Gained additional sorcery point (INT > 14)`, { int: this.int, sorcery_points: this.sorcery_points })
+    }
+    if (this.dex >= MIN_FINESSE_DEX && this.lvl % 2) {
+      this.finesse_points++
+      logger.levelUp(`Gained finesse point (DEX >= 16 and odd level)`, { 
+        dex: this.dex, 
+        level: this.lvl, 
+        finesse_points: this.finesse_points 
+      })
+    }
+    
+    logger.levelUp(`Level up finalized`, {
+      level: this.lvl,
+      str: this.str,
+      dex: this.dex,
+      int: this.int,
+      old_sorcery,
+      new_sorcery: this.sorcery_points,
+      old_finesse,
+      new_finesse: this.finesse_points
+    })
+  }
+  
+  // Legacy method for backward compatibility - full +2 to single stat
   level_up(choice: Stat) {
     const old_stat = this[choice]
     const old_level = this.lvl
@@ -757,6 +846,10 @@ export function useChar() {
     finesse_points: char.finesse_points,
     race: char.race,
     abilities: char.abilities,
+    // Level-up functionality
+    pending_level_up_points: char.pending_level_up_points,
+    start_level_up: () => char.start_level_up(),
+    allocate_point: (stat: Stat) => char.allocate_point(stat),
     // Stat override functionality
     isUsingStatOverrides: char.isUsingStatOverrides(),
     toggleStatOverrides: () => char.toggleStatOverrides(),

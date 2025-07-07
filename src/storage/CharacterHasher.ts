@@ -21,6 +21,7 @@ export class CharacterHasher {
       shield: char.shield,
       hp_rolls: char.hp_rolls,
       level_up_choices: char.level_up_choices,
+      pending_level_up_points: char.pending_level_up_points,
       inventory: char.inventory.getInventory(),
       useStatOverrides: char.isUsingStatOverrides(),
       statModifiers: {
@@ -52,6 +53,7 @@ export class CharacterHasher {
         level: char.lvl,
         hp_rolls: char.hp_rolls,
         level_up_choices: char.level_up_choices,
+        pending_level_up_points: char.pending_level_up_points,
         armor: char.armor,
         weapon: char.weapon,
         shield: char.shield,

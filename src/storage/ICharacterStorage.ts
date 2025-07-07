@@ -9,6 +9,7 @@ export interface SavedCharacter {
     level: number
     hp_rolls: number[]
     level_up_choices: string[] // Track which stat was leveled each time
+    pending_level_up_points?: number // Optional for backward compatibility
     armor: string
     weapon: string
     shield: boolean
