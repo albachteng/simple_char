@@ -129,6 +129,11 @@ class Logger {
     this.log('debug', 'maneuvers', message, data)
   }
 
+  // Resource management (sorcery points, finesse points, combat maneuvers)
+  resourceManagement(message: string, data?: any) {
+    this.log('info', 'resources', message, data)
+  }
+
   // Storage operations
   storage(message: string, data?: any) {
     this.log('info', 'storage', message, data)

@@ -51,8 +51,13 @@ export class Char {
   shield: boolean
   armor: Armor
   weapon: Weapon
+  // Resource tracking with current/max values
   sorcery_points: number
+  max_sorcery_points: number
   finesse_points: number
+  max_finesse_points: number
+  combat_maneuver_points: number
+  max_combat_maneuver_points: number
   race: Race | null
   abilities: string[]
   inventory: InventoryManager
@@ -118,8 +123,16 @@ export class Char {
     logger.charCreation(`Rolling initial HP for level 1`)
     this.roll_hp()
     
-    this.sorcery_points = this?.int > 10 ? 3 : 0
-    this.finesse_points = this?.dex >= 16 ? 1 : 0
+    // Initialize resource points (current = max at creation)
+    // Note: Additional sorcery points for INT > 14 are only granted on level-up
+    this.max_sorcery_points = this?.int > 10 ? 3 : 0
+    this.sorcery_points = this.max_sorcery_points
+    this.max_finesse_points = this?.dex >= 16 ? 1 : 0
+    this.finesse_points = this.max_finesse_points
+    // Combat maneuvers calculated manually for initial creation
+    const effectiveStats = this.getEffectiveStats()
+    this.max_combat_maneuver_points = effectiveStats.str >= 16 ? this.lvl : 0
+    this.combat_maneuver_points = this.max_combat_maneuver_points
     
     logger.charCreation(`Character created successfully`, {
       race: this.race,
@@ -130,6 +143,108 @@ export class Char {
       sorcery_points: this.sorcery_points,
       finesse_points: this.finesse_points
     })
+  }
+
+  // Resource management methods
+  updateMaxValues() {
+    const effectiveStats = this.getEffectiveStats()
+    
+    // Update max values based on current stats (base values only)
+    // Level-up bonuses are handled separately in finalize_level_up()
+    const newMaxSorcery = effectiveStats.int > 10 ? 3 : 0  // Base only
+    const newMaxFinesse = effectiveStats.dex >= 16 ? 1 : 0
+    const newMaxCombat = effectiveStats.str >= 16 ? this.lvl : 0
+    
+    // If max increased, add to current (but don't exceed new max)
+    if (newMaxSorcery > this.max_sorcery_points) {
+      this.sorcery_points = Math.min(this.sorcery_points + (newMaxSorcery - this.max_sorcery_points), newMaxSorcery)
+    } else if (newMaxSorcery < this.max_sorcery_points) {
+      this.sorcery_points = Math.min(this.sorcery_points, newMaxSorcery)
+    }
+    
+    if (newMaxFinesse > this.max_finesse_points) {
+      this.finesse_points = Math.min(this.finesse_points + (newMaxFinesse - this.max_finesse_points), newMaxFinesse)
+    } else if (newMaxFinesse < this.max_finesse_points) {
+      this.finesse_points = Math.min(this.finesse_points, newMaxFinesse)
+    }
+    
+    if (newMaxCombat > this.max_combat_maneuver_points) {
+      this.combat_maneuver_points = Math.min(this.combat_maneuver_points + (newMaxCombat - this.max_combat_maneuver_points), newMaxCombat)
+    } else if (newMaxCombat < this.max_combat_maneuver_points) {
+      this.combat_maneuver_points = Math.min(this.combat_maneuver_points, newMaxCombat)
+    }
+    
+    this.max_sorcery_points = newMaxSorcery
+    this.max_finesse_points = newMaxFinesse
+    this.max_combat_maneuver_points = newMaxCombat
+    
+    logger.resourceManagement('Updated max values', {
+      sorcery: `${this.sorcery_points}/${this.max_sorcery_points}`,
+      finesse: `${this.finesse_points}/${this.max_finesse_points}`,
+      combat: `${this.combat_maneuver_points}/${this.max_combat_maneuver_points}`
+    })
+  }
+
+  // Spend sorcery points for spellcasting
+  spendSorceryPoint(): boolean {
+    if (this.sorcery_points > 0) {
+      this.sorcery_points -= 1
+      logger.resourceManagement('Spent sorcery point', { remaining: this.sorcery_points })
+      this.emitter.emit("update")
+      return true
+    }
+    return false
+  }
+
+  // Spend finesse points for sneak attacks
+  spendFinessePoint(): boolean {
+    if (this.finesse_points > 0) {
+      this.finesse_points -= 1
+      logger.resourceManagement('Spent finesse point', { remaining: this.finesse_points })
+      this.emitter.emit("update")
+      return true
+    }
+    return false
+  }
+
+  // Spend combat maneuver points
+  spendCombatManeuverPoint(): boolean {
+    if (this.combat_maneuver_points > 0) {
+      this.combat_maneuver_points -= 1
+      logger.resourceManagement('Spent combat maneuver point', { remaining: this.combat_maneuver_points })
+      this.emitter.emit("update")
+      return true
+    }
+    return false
+  }
+
+  // Rest methods to restore points
+  shortRest() {
+    // Restore half of max (rounded up) for each resource
+    this.sorcery_points = Math.min(this.max_sorcery_points, this.sorcery_points + Math.ceil(this.max_sorcery_points / 2))
+    this.finesse_points = Math.min(this.max_finesse_points, this.finesse_points + Math.ceil(this.max_finesse_points / 2))
+    this.combat_maneuver_points = Math.min(this.max_combat_maneuver_points, this.combat_maneuver_points + Math.ceil(this.max_combat_maneuver_points / 2))
+    
+    logger.resourceManagement('Short rest taken', {
+      sorcery: `${this.sorcery_points}/${this.max_sorcery_points}`,
+      finesse: `${this.finesse_points}/${this.max_finesse_points}`,
+      combat: `${this.combat_maneuver_points}/${this.max_combat_maneuver_points}`
+    })
+    this.emitter.emit("update")
+  }
+
+  longRest() {
+    // Restore all points to max
+    this.sorcery_points = this.max_sorcery_points
+    this.finesse_points = this.max_finesse_points
+    this.combat_maneuver_points = this.max_combat_maneuver_points
+    
+    logger.resourceManagement('Long rest taken', {
+      sorcery: `${this.sorcery_points}/${this.max_sorcery_points}`,
+      finesse: `${this.finesse_points}/${this.max_finesse_points}`,
+      combat: `${this.combat_maneuver_points}/${this.max_combat_maneuver_points}`
+    })
+    this.emitter.emit("update")
   }
 
   maneuvers(stat: Stat) {
@@ -280,6 +395,10 @@ export class Char {
     // Check for stat-based bonuses when allocation is complete
     if (this.pending_level_up_points === 0) {
       this.finalize_level_up()
+      // finalize_level_up handles resource updates, so no need to call updateMaxValues
+    } else {
+      // Only update max values if level-up is not finalized (to avoid conflicts)
+      this.updateMaxValues()
     }
     
     // Update inventory with new stats
@@ -293,16 +412,20 @@ export class Char {
     const old_sorcery = this.sorcery_points
     const old_finesse = this.finesse_points
     
+    // Grant level-up bonuses using the original logic
     if (this.int >= MIN_SPELLCASTING_INT) {
       this.sorcery_points++ 
+      this.max_sorcery_points++
       logger.levelUp(`Gained sorcery point (INT > 10)`, { int: this.int, sorcery_points: this.sorcery_points })
     }
     if (this.int > DBL_SPELLCASTING_INT) {
       this.sorcery_points++
+      this.max_sorcery_points++
       logger.levelUp(`Gained additional sorcery point (INT > 14)`, { int: this.int, sorcery_points: this.sorcery_points })
     }
     if (this.dex >= MIN_FINESSE_DEX && this.lvl % 2) {
       this.finesse_points++
+      this.max_finesse_points++
       logger.levelUp(`Gained finesse point (DEX >= 16 and odd level)`, { 
         dex: this.dex, 
         level: this.lvl, 
@@ -342,27 +465,19 @@ export class Char {
     this.level_up_choices.push(choice) // Track the choice
     this.roll_hp()
     
-    if (this.int >= MIN_SPELLCASTING_INT) {
-      this.sorcery_points++ 
-      logger.levelUp(`Gained sorcery point (INT > 10)`, { int: this.int, sorcery_points: this.sorcery_points })
-    }
-    if (this.int > DBL_SPELLCASTING_INT) {
-      this.sorcery_points++
-      logger.levelUp(`Gained additional sorcery point (INT > 14)`, { int: this.int, sorcery_points: this.sorcery_points })
-    }
-    if (this.dex >= MIN_FINESSE_DEX && this.lvl % 2) {
-      this.finesse_points++
-      logger.levelUp(`Gained finesse point (DEX >= 16 and odd level)`, { 
-        dex: this.dex, 
-        level: this.lvl, 
-        finesse_points: this.finesse_points 
-      })
-    }
+    // Update all max values based on new stats and level
+    this.updateMaxValues()
     
     logger.levelUp(`Level up complete`, {
       stat: choice,
       old_stats: { [choice]: old_stat, level: old_level, sorcery_points: old_sorcery, finesse_points: old_finesse },
-      new_stats: { [choice]: this[choice], level: this.lvl, sorcery_points: this.sorcery_points, finesse_points: this.finesse_points }
+      new_stats: { 
+        [choice]: this[choice], 
+        level: this.lvl, 
+        sorcery_points: `${this.sorcery_points}/${this.max_sorcery_points}`,
+        finesse_points: `${this.finesse_points}/${this.max_finesse_points}`,
+        combat_maneuvers: `${this.combat_maneuver_points}/${this.max_combat_maneuver_points}`
+      }
     })
     
     // Update inventory with new stats
@@ -841,15 +956,25 @@ export function useChar() {
     originalInt: char.int,
     shield: char.shield,
     armor: char.armor,
+    // Current resource values
     sorcery_points: char.sorcery_points,
-    combat_maneuvers: effectiveStats.str >= 16 ? char.lvl : 0,
+    max_sorcery_points: char.max_sorcery_points,
+    combat_maneuvers: char.combat_maneuver_points,
+    max_combat_maneuvers: char.max_combat_maneuver_points,
     finesse_points: char.finesse_points,
+    max_finesse_points: char.max_finesse_points,
     race: char.race,
     abilities: char.abilities,
     // Level-up functionality
     pending_level_up_points: char.pending_level_up_points,
     start_level_up: () => char.start_level_up(),
     allocate_point: (stat: Stat) => char.allocate_point(stat),
+    // Resource management functionality
+    spendSorceryPoint: () => char.spendSorceryPoint(),
+    spendFinessePoint: () => char.spendFinessePoint(),
+    spendCombatManeuverPoint: () => char.spendCombatManeuverPoint(),
+    shortRest: () => char.shortRest(),
+    longRest: () => char.longRest(),
     // Stat override functionality
     isUsingStatOverrides: char.isUsingStatOverrides(),
     toggleStatOverrides: () => char.toggleStatOverrides(),

@@ -14,6 +14,7 @@ import { InventoryViewer } from './InventoryViewer'
 import { DiceSettingsPanel } from './DiceSettings'
 import { StatOverrideControls } from './StatOverrideControls'
 import { CombatActions } from './CombatActions'
+import { NotesManager } from './NotesManager'
 import { Stat, Race } from '../types';
 import { RACIAL_BONUS } from '../constants';
 
@@ -35,8 +36,11 @@ function App() {
     // shield,
     // armor,
     sorcery_points,
+    max_sorcery_points,
     combat_maneuvers,
+    max_combat_maneuvers,
     finesse_points,
+    max_finesse_points,
     abilities,
     pending_level_up_points,
     start_level_up,
@@ -245,9 +249,22 @@ function App() {
                </Button>
              </div>
            </div>
-           <AbilityViewer abilities={abilities} />
+           <AbilityViewer 
+            abilities={abilities}
+            str={str}
+            dex={dex}
+            int={int}
+            level={level}
+            sorcery_points={sorcery_points}
+            max_sorcery_points={max_sorcery_points}
+            combat_maneuvers={combat_maneuvers}
+            max_combat_maneuvers={max_combat_maneuvers}
+            finesse_points={finesse_points}
+            max_finesse_points={max_finesse_points}
+          />
            <InventoryViewer inventoryManager={char.inventory} onInventoryChange={handleInventoryChange} />
            <CombatActions char={char} />
+           <NotesManager onNotesChange={() => char.triggerUpdate()} />
            <DiceSettingsPanel onSettingsChange={() => char.triggerUpdate()} />
            {showSaver && high && mid && selectedRace && (
              <CharacterSaver 
@@ -255,6 +272,7 @@ function App() {
                high={high}
                mid={mid}
                racialBonuses={racialBonuses}
+               characterName={characterName}
                onSave={(name) => {
                  setCharacterName(name);
                  setShowSaver(false);

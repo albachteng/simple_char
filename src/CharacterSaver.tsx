@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button, TextInput, Paper, Text, Stack } from '@mantine/core'
 import { CharacterManager } from './storage/CharacterManager'
 import { LocalStorageCharacterStorage } from './storage/LocalStorageCharacterStorage'
@@ -11,11 +11,17 @@ interface CharacterSaverProps {
   high: Stat
   mid: Stat
   racialBonuses: Stat[]
+  characterName: string
   onSave?: (name: string) => void
 }
 
-export function CharacterSaver({ char, high, mid, racialBonuses, onSave }: CharacterSaverProps) {
-  const [name, setName] = useState('')
+export function CharacterSaver({ char, high, mid, racialBonuses, characterName, onSave }: CharacterSaverProps) {
+  // Pre-populate with character name if it's not the default
+  const getInitialName = () => {
+    return characterName && characterName !== 'Unnamed Character' ? characterName : ''
+  }
+  
+  const [name, setName] = useState(getInitialName())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -23,6 +29,12 @@ export function CharacterSaver({ char, high, mid, racialBonuses, onSave }: Chara
   const [pendingSaveName, setPendingSaveName] = useState('')
 
   const characterManager = new CharacterManager(new LocalStorageCharacterStorage())
+
+  // Update name field when character name changes
+  useEffect(() => {
+    const newName = characterName && characterName !== 'Unnamed Character' ? characterName : ''
+    setName(newName)
+  }, [characterName])
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -85,7 +97,11 @@ export function CharacterSaver({ char, high, mid, racialBonuses, onSave }: Chara
           
           <TextInput
             label="Character Name"
-            placeholder="Enter a name for your character"
+            placeholder={
+              characterName && characterName !== 'Unnamed Character' 
+                ? "Change name or leave as is to update existing save"
+                : "Enter a name for your character"
+            }
             value={name}
             onChange={(e) => setName(e.currentTarget.value)}
             error={error}
