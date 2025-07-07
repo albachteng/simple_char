@@ -5,7 +5,7 @@ import { Button } from '@mantine/core'
 import {Picker} from './Picker'
 import { RacePicker } from './RacePicker'
 import { StatBonusPicker } from './StatBonusPicker'
-import { AbilityViewer } from './AbilityViewer'
+import { AbilityManagerViewer } from './AbilityManagerViewer'
 import { LogViewer } from './LogViewer'
 import { CharacterSaver } from './CharacterSaver'
 import { CharacterLoader } from './CharacterLoader'
@@ -42,6 +42,7 @@ function App() {
     finesse_points,
     max_finesse_points,
     abilities,
+    abilityManager,
     pending_level_up_points,
     start_level_up,
     allocate_point,
@@ -249,18 +250,22 @@ function App() {
                </Button>
              </div>
            </div>
-           <AbilityViewer 
+          <AbilityManagerViewer
+            abilityManager={abilityManager}
             abilities={abilities}
+            hasSpellcasting={int >= 11 && max_sorcery_points > 0}
+            hasCombatManeuvers={max_combat_maneuvers > 0}
+            hasFinesse={max_finesse_points > 0}
             str={str}
             dex={dex}
             int={int}
-            level={level}
             sorcery_points={sorcery_points}
             max_sorcery_points={max_sorcery_points}
             combat_maneuvers={combat_maneuvers}
             max_combat_maneuvers={max_combat_maneuvers}
             finesse_points={finesse_points}
             max_finesse_points={max_finesse_points}
+            onAbilityChange={() => char.triggerUpdate()}
           />
            <InventoryViewer inventoryManager={char.inventory} onInventoryChange={handleInventoryChange} />
            <CombatActions char={char} />

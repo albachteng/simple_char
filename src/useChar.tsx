@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import { logger } from './logger'
 import { InventoryManager } from './inventory/InventoryManager'
 import { DiceSettings } from './utils/dice'
+import { AbilityManager } from './abilities/AbilityManager'
 
 function isTwoHand(weapon: Weapon) {
   return (
@@ -61,6 +62,7 @@ export class Char {
   race: Race | null
   abilities: string[]
   inventory: InventoryManager
+  abilityManager: AbilityManager
   
   // Stat override system - these are bonuses/penalties, not absolute values
   private useStatOverrides: boolean = false
@@ -114,8 +116,9 @@ export class Char {
     this.armor = "none"
     this.weapon = "none"
     
-    // Initialize inventory
+    // Initialize inventory and ability manager
     this.inventory = new InventoryManager()
+    this.abilityManager = new AbilityManager()
     
     // Set initial character stats for inventory validation
     this.updateInventoryStats()
@@ -965,6 +968,7 @@ export function useChar() {
     max_finesse_points: char.max_finesse_points,
     race: char.race,
     abilities: char.abilities,
+    abilityManager: char.abilityManager,
     // Level-up functionality
     pending_level_up_points: char.pending_level_up_points,
     start_level_up: () => char.start_level_up(),

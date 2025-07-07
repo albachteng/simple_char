@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MantineProvider } from '@mantine/core'
 import { AbilityViewer } from '../AbilityViewer'
+import { AbilityManager } from '../abilities/AbilityManager'
 import { describe, it, expect } from 'vitest'
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -20,7 +21,8 @@ const defaultProps = {
   combat_maneuvers: 0,
   max_combat_maneuvers: 0,
   finesse_points: 0,
-  max_finesse_points: 0
+  max_finesse_points: 0,
+  abilityManager: new AbilityManager()
 }
 
 describe('AbilityViewer', () => {
@@ -47,11 +49,14 @@ describe('AbilityViewer', () => {
     expect(screen.getByText('Special Abilities')).toBeInTheDocument()
     expect(screen.getByText('Treewalk')).toBeInTheDocument()
     expect(screen.getByText('Lucky')).toBeInTheDocument()
-    expect(screen.getByText('Move through trees and foliage without penalty, gain advantage on stealth in natural environments')).toBeInTheDocument()
+    expect(screen.getByText("In the forests, the elves' movements become almost impossible to follow")).toBeInTheDocument()
+    expect(screen.getByText('The smallfolk are implausibly capable, always pulling victory from the jaws of defeat')).toBeInTheDocument()
   })
 
-  it('should show spellcasting section when INT is sufficient', async () => {
-    const user = userEvent.setup()
+  it('should show spellcasting section when INT is sufficient and abilities are learned', async () => {
+    const abilityManager = new AbilityManager()
+    abilityManager.learnAbility('Chill', 'spellword')
+    abilityManager.learnAbility('Aura', 'metamagic')
     
     render(
       <TestWrapper>
@@ -59,7 +64,8 @@ describe('AbilityViewer', () => {
           {...defaultProps} 
           int={14} 
           sorcery_points={3}
-          max_sorcery_points={4} 
+          max_sorcery_points={4}
+          abilityManager={abilityManager}
         />
       </TestWrapper>
     )
@@ -68,27 +74,24 @@ describe('AbilityViewer', () => {
     expect(screen.getByText('Spellcasting')).toBeInTheDocument()
     expect(screen.getByText('3/4')).toBeInTheDocument()
     
-    // Click to expand spellcasting
-    const spellcastingButton = screen.getByText('Spellcasting')
-    await user.click(spellcastingButton)
-    
-    expect(screen.getByText('Spellwords')).toBeInTheDocument()
-    expect(screen.getByText('Metamagic')).toBeInTheDocument()
+    // Check learned abilities are shown
     expect(screen.getByText('Chill')).toBeInTheDocument()
     expect(screen.getByText('Aura')).toBeInTheDocument()
   })
 
-  it('should show combat maneuvers when available', async () => {
-    const user = userEvent.setup()
+  it('should show combat maneuvers when available and learned', async () => {
+    const abilityManager = new AbilityManager()
+    abilityManager.learnAbility('Blinding', 'combat_maneuver')
+    abilityManager.learnAbility('Cleave', 'combat_maneuver')
     
     render(
       <TestWrapper>
         <AbilityViewer 
           {...defaultProps} 
           str={16} 
-          level={3}
           combat_maneuvers={2}
-          max_combat_maneuvers={3} 
+          max_combat_maneuvers={3}
+          abilityManager={abilityManager}
         />
       </TestWrapper>
     )
@@ -96,10 +99,7 @@ describe('AbilityViewer', () => {
     expect(screen.getByText('Combat Maneuvers')).toBeInTheDocument()
     expect(screen.getByText('2/3')).toBeInTheDocument()
     
-    // Click to expand combat maneuvers
-    const combatButton = screen.getByText('Combat Maneuvers')
-    await user.click(combatButton)
-    
+    // Check learned abilities are shown
     expect(screen.getByText('Blinding')).toBeInTheDocument()
     expect(screen.getByText('Cleave')).toBeInTheDocument()
     expect(screen.getByText('Strike to temporarily blind opponent')).toBeInTheDocument()
@@ -131,6 +131,10 @@ describe('AbilityViewer', () => {
   })
 
   it('should show multiple ability categories simultaneously', () => {
+    const abilityManager = new AbilityManager()
+    abilityManager.learnAbility('Chill', 'spellword')
+    abilityManager.learnAbility('Blinding', 'combat_maneuver')
+    
     render(
       <TestWrapper>
         <AbilityViewer 
@@ -139,13 +143,13 @@ describe('AbilityViewer', () => {
           int={14}
           str={16}
           dex={16}
-          level={5}
           sorcery_points={3}
           max_sorcery_points={5}
           combat_maneuvers={4}
           max_combat_maneuvers={5}
           finesse_points={1}
           max_finesse_points={1}
+          abilityManager={abilityManager}
         />
       </TestWrapper>
     )
