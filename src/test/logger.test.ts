@@ -1,10 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { logger } from '../logger'
 
 describe('Logger', () => {
-  beforeEach(() => {
-    logger.clearLogs()
-  })
 
   it('should log messages with correct format', () => {
     logger.charCreation('Test character creation', { str: 16 })
@@ -30,13 +27,6 @@ describe('Logger', () => {
     expect(combatLogs[0].message).toBe('Combat test')
   })
 
-  it('should clear logs', () => {
-    logger.debug('Test message')
-    expect(logger.getLogs()).toHaveLength(1)
-    
-    logger.clearLogs()
-    expect(logger.getLogs()).toHaveLength(0)
-  })
 
   it('should get recent logs', () => {
     for (let i = 0; i < 15; i++) {
@@ -51,13 +41,18 @@ describe('Logger', () => {
   it('should respect log level filtering', () => {
     logger.setLevel('warn')
     
+    const initialLogCount = logger.getLogs().length
+    
     logger.debug('Debug message')
     logger.info('Info message')
     logger.error('Error message')
     
     const logs = logger.getLogs()
-    expect(logs).toHaveLength(1)
-    expect(logs[0].message).toBe('Error message')
+    const newLogs = logs.slice(initialLogCount)
+    
+    // Should only have logged the error message (warn level blocks debug and info)
+    expect(newLogs).toHaveLength(1)
+    expect(newLogs[0].message).toBe('Error message')
     
     // Reset to debug for other tests
     logger.setLevel('debug')

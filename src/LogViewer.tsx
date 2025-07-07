@@ -13,10 +13,6 @@ export function LogViewer() {
     setLogs(logger.getLogs())
   }
 
-  const clearLogs = () => {
-    logger.clearLogs()
-    setLogs([])
-  }
 
   // Auto-refresh logs every second to catch new entries
   useEffect(() => {
@@ -60,7 +56,6 @@ export function LogViewer() {
           </Group>
           <Group>
             <Button size="xs" variant="light" onClick={refreshLogs}>↻</Button>
-            <Button size="xs" variant="light" color="red" onClick={clearLogs}>Clear</Button>
             <ActionIcon 
               size="md" 
               variant="light" 

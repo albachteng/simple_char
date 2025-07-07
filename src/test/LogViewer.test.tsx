@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MantineProvider } from '@mantine/core'
@@ -14,15 +14,11 @@ const renderWithMantine = (component: React.ReactNode) => {
 }
 
 describe('LogViewer component', () => {
-  beforeEach(() => {
-    logger.clearLogs()
-  })
 
   it('should render log viewer with title', () => {
     renderWithMantine(<LogViewer />)
     
     expect(screen.getByText('Debug Log')).toBeInTheDocument()
-    expect(screen.getByText('Clear')).toBeInTheDocument()
   })
 
   it('should show no logs message initially', () => {
@@ -56,18 +52,4 @@ describe('LogViewer component', () => {
     expect(screen.queryByLabelText('Level')).not.toBeInTheDocument()
   })
 
-  it('should clear logs when clear button is clicked', async () => {
-    logger.debug('Test message')
-    
-    const user = userEvent.setup()
-    renderWithMantine(<LogViewer />)
-    
-    // Wait for logs to load
-    await new Promise(resolve => setTimeout(resolve, 1100))
-    
-    const clearButton = screen.getByText('Clear')
-    await user.click(clearButton)
-    
-    expect(screen.getByText('No logs generated yet')).toBeInTheDocument()
-  })
 })

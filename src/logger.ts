@@ -12,6 +12,11 @@ class Logger {
   private logs: LogEntry[] = []
   private enabled: boolean = true
   private level: LogLevel = 'debug'
+  private readonly STORAGE_KEY = 'character_generator_logs'
+
+  constructor() {
+    this.loadLogs()
+  }
 
   setEnabled(enabled: boolean) {
     this.enabled = enabled
@@ -19,6 +24,26 @@ class Logger {
 
   setLevel(level: LogLevel) {
     this.level = level
+  }
+
+  private loadLogs() {
+    try {
+      const storedLogs = localStorage.getItem(this.STORAGE_KEY)
+      if (storedLogs) {
+        this.logs = JSON.parse(storedLogs)
+      }
+    } catch (error) {
+      console.warn('Failed to load logs from localStorage:', error)
+      this.logs = []
+    }
+  }
+
+  private saveLogs() {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.logs))
+    } catch (error) {
+      console.warn('Failed to save logs to localStorage:', error)
+    }
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -40,6 +65,7 @@ class Logger {
     }
 
     this.logs.push(entry)
+    this.saveLogs()
     
     // Also log to console for development
     const consoleMessage = `[${entry.timestamp}] ${category.toUpperCase()}: ${message}`
@@ -128,10 +154,7 @@ class Logger {
     return [...this.logs]
   }
 
-  // Clear logs
-  clearLogs() {
-    this.logs = []
-  }
+  // Clear logs - removed for log persistence
 
   // Get logs by category
   getLogsByCategory(category: string): LogEntry[] {
