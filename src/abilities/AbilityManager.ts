@@ -256,8 +256,4 @@ export class AbilityManager {
     }
   }
 
-  private loadAbilities(): void {
-    // This method is kept for backward compatibility but renamed to avoid confusion
-    this.loadAbilitiesFromStorage()
-  }
 }

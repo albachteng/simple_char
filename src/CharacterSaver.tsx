@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Button, TextInput, Paper, Text, Stack, Modal } from '@mantine/core'
+import { Button, TextInput, Text, Stack, Modal } from '@mantine/core'
 import { CharacterManager } from './storage/CharacterManager'
 import { LocalStorageCharacterStorage } from './storage/LocalStorageCharacterStorage'
 import { OverwriteConfirmModal } from './OverwriteConfirmModal'
