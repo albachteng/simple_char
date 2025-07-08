@@ -28,7 +28,8 @@ export class CharacterHasher {
         str: char.getStatModifier('str'),
         dex: char.getStatModifier('dex'),
         int: char.getStatModifier('int')
-      }
+      },
+      learnedAbilities: char.abilityManager.getAllAbilities()
     }
     
     // Simple hash function using character data
@@ -63,7 +64,8 @@ export class CharacterHasher {
           str: char.getStatModifier('str'),
           dex: char.getStatModifier('dex'),
           int: char.getStatModifier('int')
-        }
+        },
+        learnedAbilities: char.abilityManager.getAllAbilities()
       },
       timestamp: Date.now()
     }

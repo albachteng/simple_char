@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Button, TextInput, Paper, Text, Stack, Group } from '@mantine/core'
+import { Button, TextInput, Paper, Text, Stack, Group, Modal } from '@mantine/core'
 import { CharacterManager } from './storage/CharacterManager'
 import { LocalStorageCharacterStorage } from './storage/LocalStorageCharacterStorage'
 import { SavedCharacter } from './storage/ICharacterStorage'
@@ -7,11 +7,12 @@ import { Char } from './useChar'
 import { Stat } from '../types'
 
 interface CharacterLoaderProps {
+  opened: boolean
   onLoad?: (char: Char, high: Stat, mid: Stat, racialBonuses: Stat[], name: string) => void
   onCancel?: () => void
 }
 
-export function CharacterLoader({ onLoad, onCancel }: CharacterLoaderProps) {
+export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderProps) {
   const [characters, setCharacters] = useState<SavedCharacter[]>([])
   const [hashInput, setHashInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -96,9 +97,14 @@ export function CharacterLoader({ onLoad, onCancel }: CharacterLoaderProps) {
   }
 
   return (
-    <Paper p="md" withBorder style={{ margin: '16px 0' }}>
+    <Modal 
+      opened={opened} 
+      onClose={() => onCancel?.()} 
+      title="Load Character"
+      size="lg"
+      centered
+    >
       <Stack gap="md">
-        <Text size="lg" fw={600}>Load Character</Text>
 
         {/* Load by Hash */}
         <div>
@@ -166,13 +172,7 @@ export function CharacterLoader({ onLoad, onCancel }: CharacterLoaderProps) {
         {error && (
           <Text c="red" size="sm">{error}</Text>
         )}
-
-        <Group justify="flex-end" gap="sm">
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        </Group>
       </Stack>
-    </Paper>
+    </Modal>
   )
 }

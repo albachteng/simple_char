@@ -120,6 +120,9 @@ export class Char {
     this.inventory = new InventoryManager()
     this.abilityManager = new AbilityManager()
     
+    // Clear abilities to ensure new characters start fresh
+    this.abilityManager.clearAbilities()
+    
     // Set initial character stats for inventory validation
     this.updateInventoryStats()
     

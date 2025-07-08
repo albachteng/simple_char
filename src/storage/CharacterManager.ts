@@ -152,6 +152,19 @@ export class CharacterManager {
       char.syncEquipmentFromInventory()
     }
     
+    // Restore learned abilities
+    if (data.learnedAbilities && Array.isArray(data.learnedAbilities)) {
+      // Clear abilities first to ensure clean state
+      char.abilityManager.clearAbilities()
+      
+      // Restore each learned ability
+      data.learnedAbilities.forEach((ability: any) => {
+        char.abilityManager.learnAbility(ability.name, ability.type, ability.learnedAt)
+      })
+      
+      logger.storage(`Restored ${data.learnedAbilities.length} learned abilities for character "${savedChar.name}"`)
+    }
+    
     // Restore stat modifiers
     if (data.useStatOverrides && data.statModifiers) {
       char.toggleStatOverrides() // Enable overrides

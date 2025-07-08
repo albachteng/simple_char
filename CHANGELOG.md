@@ -26,6 +26,8 @@ All notable changes to this project will be documented in this file.
 - **Combat calculation breakdowns** - Detailed roll summaries showing all modifiers (e.g., "10 (1d20) + 3 (STR modifier) + 1 (level)")
 - **CustomNumberInput component** - Replacement for problematic Mantine NumberInput with keyboard controls
 - **Enchantment system** - Items can be enchanted from -3 (cursed) to +3 (maximum) affecting combat and AC
+- **ResourceDisplay component** - Reusable component for displaying HP/AC/resource information with flexible layouts (2025-07-08 11:56:40 CDT)
+- **AbilityManagerViewer component extraction** - Split 379-line component into 5 focused sub-components: LearnAbilitySection, RacialAbilitiesSection, SpellcastingSection, CombatManeuversSection, and FinesseAbilitiesSection (2025-07-08 11:56:40 CDT)
 
 ### Changed
 - Updated CLAUDE.md with testing documentation and planned features
@@ -35,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - **Equipment slots reworked** - Added main-hand/off-hand weapon distinction with visual indicators
 - **Combat mechanics enhanced** - Off-hand attacks get no level bonus, off-hand damage gets no stat modifier
 - **AC calculation improved** - Now includes equipment stat bonuses and enchantment bonuses
+- **CharacterDisplay refactored** - Replaced manual h3 tags with standardized CompactResourceDisplay component (2025-07-08 11:56:40 CDT)
 
 ### Fixed
 - Corrected maneuvers calculation for STR stat: now returns character level when STR >= 16, instead of level modifier
@@ -65,6 +68,11 @@ All notable changes to this project will be documented in this file.
 - **Bundle Size Reduction**: Removed complex Mantine Select dependencies, reduced build size by ~76KB
 - **Dark Theme Colors**: CustomSelect uses #2a2a2a background, #e0e0e0 text, #555 borders with #646cff focus states
 - **Enhanced Log Readability**: Updated log level colors (#4a9eff, #ffb347, #ff6b6b) and alternating row backgrounds (#333/#2a2a2a)
+- **CRITICAL: Fixed ability persistence bug** - Abilities (spells, metamagic, combat maneuvers) now properly reset when creating new characters instead of persisting from previous characters (2025-07-07 21:42:19 CDT)
+- **CRITICAL: Fixed inventory crash bug** - Added missing ScrollArea import in InventoryViewer.tsx that was causing app crashes when adding/managing items (2025-07-08 11:56:40 CDT)
+- **Fixed Load Character button** - Restored functionality for "Load Character" button in CharacterDisplay that was broken during refactoring (2025-07-08 08:14:06 CDT)
+- **Improved UX with modal dialogs** - Converted CharacterLoader and CharacterSaver to use Mantine modals, providing better visibility and forcing user interaction with critical save/load flows (2025-07-08 08:52:15 CDT)
+- **Fixed CharacterLoader in creation flow** - Restored CharacterLoader modal functionality in CharacterCreationFlow and updated corresponding tests (2025-07-08 11:31:52 CDT)
 - **Race system architecture**: RACIAL_BONUS constant with flexible stat assignment including "any" stat bonuses
 - **Character storage format**: Extended ICharacterStorage with race, abilities, level choices, and inventory data
 - **Inventory system design**: InventoryManager with slot-based equipment, validation, and stat bonus calculations
