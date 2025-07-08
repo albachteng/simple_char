@@ -57,7 +57,7 @@ export const RACIAL_BONUS = {
   },
   dragonborn: {
 	ability: "Flametongue", 
-	bonus: [{plus: 2, stat: "str"}],
+	bonus: [{plus: 2, stat: "any"}],
   },
   halfling: {
 	ability: "Lucky", 

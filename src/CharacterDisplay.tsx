@@ -13,6 +13,7 @@ import { CharacterSaver } from './CharacterSaver';
 import { CharacterNameEditor } from './CharacterNameEditor';
 import { StatOverrideControls } from './StatOverrideControls';
 import { Stat, Race } from '../types';
+import { COLORS, SPACING } from './theme/constants';
 
 interface CharacterDisplayProps {
   // Character data
@@ -114,7 +115,7 @@ export function CharacterDisplay({
           name={characterName}
           onNameChange={onNameChange}
         />
-        <h2 style={{ color: '#bbb', fontSize: '16px' }}>
+        <h2 style={{ color: COLORS.TEXT_SECONDARY, fontSize: '16px' }}>
           {selectedRace?.charAt(0).toUpperCase() + selectedRace?.slice(1)} - Level {level}
         </h2>
         <CardSection>
@@ -131,8 +132,8 @@ export function CharacterDisplay({
             size="md"
           />
           {pending_level_up_points > 0 ? (
-            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
-              <h4 style={{ color: '#ffb347', margin: '0 0 8px 0' }}>
+            <div style={{ marginBottom: SPACING.MD, padding: '12px', backgroundColor: COLORS.BACKGROUND_DARK, borderRadius: '8px' }}>
+              <h4 style={{ color: COLORS.WARNING, margin: '0 0 8px 0' }}>
                 Level Up in Progress - {pending_level_up_points} point{pending_level_up_points !== 1 ? 's' : ''} remaining
               </h4>
               <StatButtonGroup

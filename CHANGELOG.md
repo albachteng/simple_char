@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - **Enchantment system** - Items can be enchanted from -3 (cursed) to +3 (maximum) affecting combat and AC
 - **ResourceDisplay component** - Reusable component for displaying HP/AC/resource information with flexible layouts (2025-07-08 11:56:40 CDT)
 - **AbilityManagerViewer component extraction** - Split 379-line component into 5 focused sub-components: LearnAbilitySection, RacialAbilitiesSection, SpellcastingSection, CombatManeuversSection, and FinesseAbilitiesSection (2025-07-08 11:56:40 CDT)
+- **Theme constants system** - Created comprehensive color and styling constants in src/theme/constants.ts to eliminate hardcoded values and improve maintainability (2025-07-08 13:26:23 CDT)
 
 ### Changed
 - Updated CLAUDE.md with testing documentation and planned features
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - **Combat mechanics enhanced** - Off-hand attacks get no level bonus, off-hand damage gets no stat modifier
 - **AC calculation improved** - Now includes equipment stat bonuses and enchantment bonuses
 - **CharacterDisplay refactored** - Replaced manual h3 tags with standardized CompactResourceDisplay component (2025-07-08 11:56:40 CDT)
+- **Style consistency improved** - Updated CharacterDisplay, AbilityViewer, LogViewer, and NotesManager to use theme constants instead of hardcoded colors (2025-07-08 13:26:23 CDT)
 
 ### Fixed
 - Corrected maneuvers calculation for STR stat: now returns character level when STR >= 16, instead of level modifier
@@ -52,6 +54,8 @@ All notable changes to this project will be documented in this file.
 - **Fixed inventory state management** - Resolved equipment conflicts and character reset issues
 - **Fixed stat override state persistence** - Override states now properly activate on load and respond immediately to toggle
 - **Fixed NumberInput layout issues** - Custom component eliminates Mantine layout problems
+- **CRITICAL: Fixed sorcery and finesse point calculation bug** - Resource points now correctly scale with level instead of being capped at base values (2025-07-08 13:36:57 CDT)
+- **CRITICAL: Implemented non-retroactive resource system** - Sorcery and finesse points are now only granted for levels gained AFTER reaching required stat thresholds, encouraging strategic stat investment timing. Combat maneuvers remain immediate/retroactive. Added comprehensive threshold tracking to save/load system to ensure proper resource progression across character sessions. (2025-07-08 13:52:00 CDT)
 
 ### Technical Details
 - Added dependencies: vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, jsdom
@@ -81,6 +85,9 @@ All notable changes to this project will be documented in this file.
 - **EnchantmentControls component**: Modal interface with +1/-1 buttons, reset functionality, and detailed descriptions
 - **Comprehensive test coverage**: 141 tests across 24 test files covering all major functionality
 - **Type safety improvements**: EnchantmentLevel type (-3 to 3), EquipmentSlot type, enhanced inventory types
+- **Theme constants architecture**: 22+ centralized color values including ability-specific colors (racial, finesse, combat, spellword, metamagic), text colors, and background shades with comprehensive TypeScript typing (2025-07-08 13:26:23 CDT)
+- **Resource calculation fix**: Updated updateMaxValues() method to properly calculate total sorcery and finesse points including level-based bonuses instead of only base values (2025-07-08 13:36:57 CDT)
+- **Non-retroactive resource system**: Added private threshold tracking fields (sorceryThresholdLevel, doubleSorceryThresholdLevel, finesseThresholdLevel) to Char class with getter/setter methods. Updated save/load system (ICharacterStorage, CharacterHasher, CharacterManager) to persist threshold data. Modified finesse point calculation to count only odd levels after threshold reached. Created comprehensive test suite (nonRetroactiveResources.test.ts, thresholdPersistence.test.ts) with 14 tests covering threshold tracking, resource calculation, and save/load functionality (2025-07-08 13:52:00 CDT)
 
 ---
 

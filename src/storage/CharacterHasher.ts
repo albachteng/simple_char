@@ -29,7 +29,11 @@ export class CharacterHasher {
         dex: char.getStatModifier('dex'),
         int: char.getStatModifier('int')
       },
-      learnedAbilities: char.abilityManager.getAllAbilities()
+      learnedAbilities: char.abilityManager.getAllAbilities(),
+      // Include threshold tracking for consistent hashing
+      sorceryThresholdLevel: char.getSorceryThresholdLevel(),
+      doubleSorceryThresholdLevel: char.getDoubleSorceryThresholdLevel(),
+      finesseThresholdLevel: char.getFinesseThresholdLevel()
     }
     
     // Simple hash function using character data
@@ -65,7 +69,11 @@ export class CharacterHasher {
           dex: char.getStatModifier('dex'),
           int: char.getStatModifier('int')
         },
-        learnedAbilities: char.abilityManager.getAllAbilities()
+        learnedAbilities: char.abilityManager.getAllAbilities(),
+        // Include threshold tracking for proper resource progression
+        sorceryThresholdLevel: char.getSorceryThresholdLevel(),
+        doubleSorceryThresholdLevel: char.getDoubleSorceryThresholdLevel(),
+        finesseThresholdLevel: char.getFinesseThresholdLevel()
       },
       timestamp: Date.now()
     }

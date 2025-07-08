@@ -67,6 +67,11 @@ export class Char {
   // Stat override system - these are bonuses/penalties, not absolute values
   private useStatOverrides: boolean = false
   private statModifiers: { str: number, dex: number, int: number } = { str: 0, dex: 0, int: 0 }
+  
+  // Track when stat thresholds were first reached (null = never reached)
+  private sorceryThresholdLevel: number | null = null // When INT >= 11 was first reached
+  private doubleSorceryThresholdLevel: number | null = null // When INT > 14 was first reached  
+  private finesseThresholdLevel: number | null = null // When DEX >= 16 was first reached
   constructor(high: Stat, med: Stat, race: Race | null = null, racialBonuses: Stat[] = []) {
     logger.charCreation(`Creating new character with high stat: ${high}, medium stat: ${med}, race: ${race || 'none'}`)
     
@@ -116,6 +121,14 @@ export class Char {
     this.armor = "none"
     this.weapon = "none"
     
+    // Initialize resource points to 0 (will be calculated later)
+    this.sorcery_points = 0
+    this.max_sorcery_points = 0
+    this.finesse_points = 0
+    this.max_finesse_points = 0
+    this.combat_maneuver_points = 0
+    this.max_combat_maneuver_points = 0
+    
     // Initialize inventory and ability manager
     this.inventory = new InventoryManager()
     this.abilityManager = new AbilityManager()
@@ -126,18 +139,18 @@ export class Char {
     // Set initial character stats for inventory validation
     this.updateInventoryStats()
     
+    // Initialize threshold tracking for level 1
+    this.initializeThresholds()
+    
     logger.charCreation(`Rolling initial HP for level 1`)
     this.roll_hp()
     
     // Initialize resource points (current = max at creation)
-    // Note: Additional sorcery points for INT > 14 are only granted on level-up
-    this.max_sorcery_points = this?.int > 10 ? 3 : 0
+    this.updateMaxValues()
+    
+    // Ensure current points match max at creation
     this.sorcery_points = this.max_sorcery_points
-    this.max_finesse_points = this?.dex >= 16 ? 1 : 0
     this.finesse_points = this.max_finesse_points
-    // Combat maneuvers calculated manually for initial creation
-    const effectiveStats = this.getEffectiveStats()
-    this.max_combat_maneuver_points = effectiveStats.str >= 16 ? this.lvl : 0
     this.combat_maneuver_points = this.max_combat_maneuver_points
     
     logger.charCreation(`Character created successfully`, {
@@ -151,14 +164,82 @@ export class Char {
     })
   }
 
+  // Initialize threshold tracking for level 1
+  private initializeThresholds() {
+    const effectiveStats = this.getEffectiveStats()
+    
+    // Check if thresholds are met at level 1
+    if (effectiveStats.int >= MIN_SPELLCASTING_INT) {
+      this.sorceryThresholdLevel = 1
+    }
+    if (effectiveStats.int > DBL_SPELLCASTING_INT) {
+      this.doubleSorceryThresholdLevel = 1
+    }
+    if (effectiveStats.dex >= MIN_FINESSE_DEX) {
+      this.finesseThresholdLevel = 1
+    }
+    
+    logger.charCreation(`Initialized stat thresholds`, {
+      sorceryThreshold: this.sorceryThresholdLevel,
+      doubleSorceryThreshold: this.doubleSorceryThresholdLevel,
+      finesseThreshold: this.finesseThresholdLevel
+    })
+  }
+
+  // Update threshold tracking when stats change
+  private updateThresholds() {
+    const effectiveStats = this.getEffectiveStats()
+    
+    // Check if we're newly meeting thresholds
+    if (this.sorceryThresholdLevel === null && effectiveStats.int >= MIN_SPELLCASTING_INT) {
+      this.sorceryThresholdLevel = this.lvl
+      logger.levelUp(`Reached sorcery threshold at level ${this.lvl}`, { int: effectiveStats.int })
+    }
+    if (this.doubleSorceryThresholdLevel === null && effectiveStats.int > DBL_SPELLCASTING_INT) {
+      this.doubleSorceryThresholdLevel = this.lvl
+      logger.levelUp(`Reached double sorcery threshold at level ${this.lvl}`, { int: effectiveStats.int })
+    }
+    if (this.finesseThresholdLevel === null && effectiveStats.dex >= MIN_FINESSE_DEX) {
+      this.finesseThresholdLevel = this.lvl
+      logger.levelUp(`Reached finesse threshold at level ${this.lvl}`, { dex: effectiveStats.dex })
+    }
+  }
+
   // Resource management methods
   updateMaxValues() {
     const effectiveStats = this.getEffectiveStats()
     
-    // Update max values based on current stats (base values only)
-    // Level-up bonuses are handled separately in finalize_level_up()
-    const newMaxSorcery = effectiveStats.int > 10 ? 3 : 0  // Base only
-    const newMaxFinesse = effectiveStats.dex >= 16 ? 1 : 0
+    // Update thresholds first
+    this.updateThresholds()
+    
+    // Calculate sorcery points only for levels after threshold was reached
+    let newMaxSorcery = 0
+    if (this.sorceryThresholdLevel !== null && effectiveStats.int >= MIN_SPELLCASTING_INT) {
+      // Base 3 + 1 per level after threshold was reached
+      const levelsAfterThreshold = Math.max(0, this.lvl - this.sorceryThresholdLevel)
+      newMaxSorcery = 3 + levelsAfterThreshold
+      
+      // Additional +1 per level after double threshold was reached
+      if (this.doubleSorceryThresholdLevel !== null && effectiveStats.int > DBL_SPELLCASTING_INT) {
+        const levelsAfterDoubleThreshold = Math.max(0, this.lvl - this.doubleSorceryThresholdLevel)
+        newMaxSorcery += levelsAfterDoubleThreshold
+      }
+    }
+    
+    // Calculate finesse points only for levels after threshold was reached
+    let newMaxFinesse = 0
+    if (this.finesseThresholdLevel !== null && effectiveStats.dex >= MIN_FINESSE_DEX) {
+      // Base 1 + 1 per odd level after threshold was reached
+      let oddLevelsAfterThreshold = 0
+      for (let level = this.finesseThresholdLevel + 1; level <= this.lvl; level++) {
+        if (level % 2 === 1) { // Odd level
+          oddLevelsAfterThreshold++
+        }
+      }
+      newMaxFinesse = 1 + oddLevelsAfterThreshold
+    }
+    
+    // Combat maneuvers are immediate (not progressive)
     const newMaxCombat = effectiveStats.str >= 16 ? this.lvl : 0
     
     // If max increased, add to current (but don't exceed new max)
@@ -418,26 +499,8 @@ export class Char {
     const old_sorcery = this.sorcery_points
     const old_finesse = this.finesse_points
     
-    // Grant level-up bonuses using the original logic
-    if (this.int >= MIN_SPELLCASTING_INT) {
-      this.sorcery_points++ 
-      this.max_sorcery_points++
-      logger.levelUp(`Gained sorcery point (INT > 10)`, { int: this.int, sorcery_points: this.sorcery_points })
-    }
-    if (this.int > DBL_SPELLCASTING_INT) {
-      this.sorcery_points++
-      this.max_sorcery_points++
-      logger.levelUp(`Gained additional sorcery point (INT > 14)`, { int: this.int, sorcery_points: this.sorcery_points })
-    }
-    if (this.dex >= MIN_FINESSE_DEX && this.lvl % 2) {
-      this.finesse_points++
-      this.max_finesse_points++
-      logger.levelUp(`Gained finesse point (DEX >= 16 and odd level)`, { 
-        dex: this.dex, 
-        level: this.lvl, 
-        finesse_points: this.finesse_points 
-      })
-    }
+    // Now that stats are finalized, recalculate max values
+    this.updateMaxValues()
     
     logger.levelUp(`Level up finalized`, {
       level: this.lvl,
@@ -908,6 +971,32 @@ export class Char {
       "DMG: ", this.weapon_attack(), "SNEAK ATTACK: ", 
       this.finesse_points ? this.sneak_attack() : "X", "\n",
     )
+  }
+
+  // Getter methods for threshold tracking (needed for save/load)
+  getSorceryThresholdLevel(): number | null {
+    return this.sorceryThresholdLevel
+  }
+
+  getDoubleSorceryThresholdLevel(): number | null {
+    return this.doubleSorceryThresholdLevel
+  }
+
+  getFinesseThresholdLevel(): number | null {
+    return this.finesseThresholdLevel
+  }
+
+  // Setter methods for threshold tracking (needed for save/load)
+  setSorceryThresholdLevel(level: number | null): void {
+    this.sorceryThresholdLevel = level
+  }
+
+  setDoubleSorceryThresholdLevel(level: number | null): void {
+    this.doubleSorceryThresholdLevel = level
+  }
+
+  setFinesseThresholdLevel(level: number | null): void {
+    this.finesseThresholdLevel = level
   }
 }
 

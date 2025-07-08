@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css'
 import { useChar } from './useChar'
 import { CharacterCreationFlow } from './CharacterCreationFlow'
 import { CharacterDisplay } from './CharacterDisplay'
 import { CharacterLoader } from './CharacterLoader'
 import { LogViewer } from './LogViewer'
+import { logger } from './logger'
 import { Stat, Race } from '../types';
 
 function App() {
@@ -50,6 +51,15 @@ function App() {
   // Track if we have a created character (completed creation flow)
   const [hasCharacter, setHasCharacter] = useState(false);
   const [showCharacterLoader, setShowCharacterLoader] = useState(false);
+
+  // Update logger context when character name changes
+  useEffect(() => {
+    if (characterName && characterName.trim() !== '') {
+      logger.setCurrentCharacter(characterName)
+    } else {
+      logger.clearCurrentCharacter()
+    }
+  }, [characterName])
 
   const handleCharacterCreated = (
     newHigh: Stat,
@@ -164,7 +174,7 @@ function App() {
             onSaveCharacter={setCharacterName}
             onLoadCharacter={() => setShowCharacterLoader(true)}
           />
-          <LogViewer />
+          <LogViewer characterName={characterName} />
         </>
       )
       }

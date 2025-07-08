@@ -1,6 +1,7 @@
 import { Paper, Text, Stack, Accordion, Badge, Group, Divider } from '@mantine/core'
 import { MIN_SPELLCASTING_INT } from '../constants'
 import { AbilityManager } from './abilities/AbilityManager'
+import { COLORS, STYLES } from './theme/constants'
 
 interface AbilityViewerProps {
   abilities: string[]
@@ -78,9 +79,9 @@ export function AbilityViewer({
               <Accordion.Panel>
                 <Stack gap="xs">
                   {abilities.map((ability, index) => (
-                    <Paper key={index} p="sm" withBorder style={{ backgroundColor: '#2a2a2a' }}>
-                      <Text size="sm" fw={500} style={{ color: '#ffb347' }}>{ability}</Text>
-                      <Text size="xs" style={{ color: '#bbb', marginTop: '4px' }}>
+                    <Paper key={index} p="sm" withBorder style={STYLES.CARD_BACKGROUND}>
+                      <Text size="sm" fw={500} style={{ color: COLORS.RACIAL_ABILITY }}>{ability}</Text>
+                      <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                         {RACIAL_DESCRIPTIONS[ability] || "A special racial ability"}
                       </Text>
                     </Paper>
@@ -101,7 +102,7 @@ export function AbilityViewer({
               </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="sm">
-                  <Text size="sm" style={{ color: '#bbb' }}>
+                  <Text size="sm" style={{ color: COLORS.TEXT_SECONDARY }}>
                     INT {int} allows spellcasting. Combine Spellwords with Metamagic to create custom spells.
                   </Text>
                   
@@ -110,14 +111,14 @@ export function AbilityViewer({
                       <Divider label="Known Spellwords" labelPosition="center" />
                       <Stack gap="xs">
                         {learnedSpellwords.map((ability) => (
-                          <Paper key={ability.id} p="xs" withBorder style={{ backgroundColor: '#2a2a2a' }}>
+                          <Paper key={ability.id} p="xs" withBorder style={STYLES.CARD_BACKGROUND}>
                             <Group justify="space-between">
-                              <Text size="sm" fw={500} style={{ color: '#bb86fc' }}>{ability.name}</Text>
+                              <Text size="sm" fw={500} style={{ color: COLORS.SPELLWORD_ABILITY }}>{ability.name}</Text>
                               {ability.learnedAt && (
                                 <Badge size="xs" color="gray" variant="outline">Lv {ability.learnedAt}</Badge>
                               )}
                             </Group>
-                            <Text size="xs" style={{ color: '#bbb', marginTop: '2px' }}>
+                            <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                               {ability.description}
                             </Text>
                           </Paper>
@@ -131,14 +132,14 @@ export function AbilityViewer({
                       <Divider label="Known Metamagic" labelPosition="center" />
                       <Stack gap="xs">
                         {learnedMetamagic.map((ability) => (
-                          <Paper key={ability.id} p="xs" withBorder style={{ backgroundColor: '#2a2a2a' }}>
+                          <Paper key={ability.id} p="xs" withBorder style={STYLES.CARD_BACKGROUND}>
                             <Group justify="space-between">
-                              <Text size="sm" fw={500} style={{ color: '#03dac6' }}>{ability.name}</Text>
+                              <Text size="sm" fw={500} style={{ color: COLORS.METAMAGIC_ABILITY }}>{ability.name}</Text>
                               {ability.learnedAt && (
                                 <Badge size="xs" color="gray" variant="outline">Lv {ability.learnedAt}</Badge>
                               )}
                             </Group>
-                            <Text size="xs" style={{ color: '#bbb', marginTop: '2px' }}>
+                            <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                               {ability.description}
                             </Text>
                           </Paper>
@@ -162,19 +163,19 @@ export function AbilityViewer({
               </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="sm">
-                  <Text size="sm" style={{ color: '#bbb' }}>
+                  <Text size="sm" style={{ color: COLORS.TEXT_SECONDARY }}>
                     STR {str} (≥16) grants {max_combat_maneuvers} combat maneuver uses per encounter. Current: {combat_maneuvers} remaining.
                   </Text>
                   <Stack gap="xs">
                     {learnedManeuvers.map((ability) => (
-                      <Paper key={ability.id} p="xs" withBorder style={{ backgroundColor: '#2a2a2a' }}>
+                      <Paper key={ability.id} p="xs" withBorder style={STYLES.CARD_BACKGROUND}>
                         <Group justify="space-between">
-                          <Text size="sm" fw={500} style={{ color: '#ff6b6b' }}>{ability.name}</Text>
+                          <Text size="sm" fw={500} style={{ color: COLORS.COMBAT_ABILITY }}>{ability.name}</Text>
                           {ability.learnedAt && (
                             <Badge size="xs" color="gray" variant="outline">Lv {ability.learnedAt}</Badge>
                           )}
                         </Group>
-                        <Text size="xs" style={{ color: '#bbb', marginTop: '2px' }}>
+                        <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                           {ability.description}
                         </Text>
                       </Paper>
@@ -196,18 +197,18 @@ export function AbilityViewer({
               </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="sm">
-                  <Text size="sm" style={{ color: '#bbb' }}>
+                  <Text size="sm" style={{ color: COLORS.TEXT_SECONDARY }}>
                     DEX {dex} (≥16) grants finesse abilities and sneak attack dice.
                   </Text>
-                  <Paper p="xs" withBorder style={{ backgroundColor: '#2a2a2a' }}>
-                    <Text size="sm" fw={500} style={{ color: '#51cf66' }}>Sneak Attack</Text>
-                    <Text size="xs" style={{ color: '#bbb', marginTop: '2px' }}>
+                  <Paper p="xs" withBorder style={STYLES.CARD_BACKGROUND}>
+                    <Text size="sm" fw={500} style={{ color: COLORS.FINESSE_ABILITY }}>Sneak Attack</Text>
+                    <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                       Roll {max_finesse_points}d8 extra damage when attacking with advantage or when target is engaged with an ally. Costs 1 finesse point per use.
                     </Text>
                   </Paper>
-                  <Paper p="xs" withBorder style={{ backgroundColor: '#2a2a2a' }}>
-                    <Text size="sm" fw={500} style={{ color: '#51cf66' }}>Enhanced Hide</Text>
-                    <Text size="xs" style={{ color: '#bbb', marginTop: '2px' }}>
+                  <Paper p="xs" withBorder style={STYLES.CARD_BACKGROUND}>
+                    <Text size="sm" fw={500} style={{ color: COLORS.FINESSE_ABILITY }}>Enhanced Hide</Text>
+                    <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                       When hiding in light armor or no armor, double your level bonus to stealth rolls
                     </Text>
                   </Paper>

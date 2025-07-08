@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button, Paper, Text, ScrollArea, Stack, Collapse, ActionIcon, Textarea, Group } from '@mantine/core'
+import { COLORS, STYLES } from './theme/constants'
 
 interface Note {
   id: string
@@ -143,7 +144,7 @@ export function NotesManager({ onNotesChange }: NotesManagerProps) {
           <Stack gap="sm">
             {/* Add new note form */}
             {isAddingNote && (
-              <Paper p="sm" withBorder style={{ backgroundColor: '#2a2a2a' }}>
+              <Paper p="sm" withBorder style={STYLES.CARD_BACKGROUND}>
                 <Stack gap="xs">
                   <Text size="sm" fw={500} c="blue">New Note</Text>
                   <Textarea
@@ -186,7 +187,7 @@ export function NotesManager({ onNotesChange }: NotesManagerProps) {
                         p="sm"
                         withBorder
                         style={{
-                          backgroundColor: isExpanded ? '#333' : '#2a2a2a',
+                          backgroundColor: isExpanded ? COLORS.BACKGROUND_DARKER : COLORS.BACKGROUND_DARK,
                           cursor: 'pointer',
                           transition: 'background-color 0.2s'
                         }}

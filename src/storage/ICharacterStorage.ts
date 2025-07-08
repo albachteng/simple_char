@@ -21,6 +21,10 @@ export interface SavedCharacter {
       int: number
     }
     learnedAbilities?: any[] // Optional for backward compatibility
+    // Threshold tracking for non-retroactive resource progression
+    sorceryThresholdLevel?: number | null
+    doubleSorceryThresholdLevel?: number | null
+    finesseThresholdLevel?: number | null
   }
   timestamp: number
 }

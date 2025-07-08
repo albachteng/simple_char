@@ -178,6 +178,20 @@ export class CharacterManager {
       char.pending_level_up_points = data.pending_level_up_points
     }
     
+    // Restore threshold tracking for non-retroactive resource progression
+    if (data.sorceryThresholdLevel !== undefined) {
+      char.setSorceryThresholdLevel(data.sorceryThresholdLevel)
+    }
+    if (data.doubleSorceryThresholdLevel !== undefined) {
+      char.setDoubleSorceryThresholdLevel(data.doubleSorceryThresholdLevel)
+    }
+    if (data.finesseThresholdLevel !== undefined) {
+      char.setFinesseThresholdLevel(data.finesseThresholdLevel)
+    }
+    
+    // Recalculate resource values with the restored threshold data
+    char.updateMaxValues()
+    
     // Validate the reconstruction
     const isValid = this.validateCharacterHash(char, savedChar.name, savedChar.hash)
     if (!isValid) {

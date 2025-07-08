@@ -13,6 +13,8 @@ class Logger {
   private enabled: boolean = true
   private level: LogLevel = 'debug'
   private readonly STORAGE_KEY = 'character_generator_logs'
+  private currentCharacterName: string | null = null
+  private currentCharacterHash: string | null = null
 
   constructor() {
     this.loadLogs()
@@ -64,11 +66,27 @@ class Logger {
       data
     }
 
+    // Store in global logs (for backward compatibility)
     this.logs.push(entry)
     this.saveLogs()
     
+    // Also store in per-character logs if we have a current character
+    if (this.currentCharacterName) {
+      // Capture character name at log time to prevent issues with async resolution
+      const characterName = this.currentCharacterName
+      const characterHash = this.currentCharacterHash
+      
+      // Lazy import to avoid circular dependencies  
+      import('./logging/CharacterLogManager').then(({ characterLogManager }) => {
+        characterLogManager.addLog(characterName, entry, characterHash || undefined)
+      }).catch(error => {
+        console.error('Failed to load CharacterLogManager:', error)
+      })
+    }
+    
     // Also log to console for development
-    const consoleMessage = `[${entry.timestamp}] ${category.toUpperCase()}: ${message}`
+    const consolePrefix = this.currentCharacterName ? `[${this.currentCharacterName}] ` : ''
+    const consoleMessage = `${consolePrefix}[${entry.timestamp}] ${category.toUpperCase()}: ${message}`
     
     switch (level) {
       case 'debug':
@@ -169,6 +187,24 @@ class Logger {
   // Get recent logs
   getRecentLogs(count: number = 10): LogEntry[] {
     return this.logs.slice(-count)
+  }
+
+  // Character context management
+  setCurrentCharacter(name: string, hash?: string) {
+    this.currentCharacterName = name
+    this.currentCharacterHash = hash || null
+  }
+
+  getCurrentCharacter(): { name: string | null; hash: string | null } {
+    return {
+      name: this.currentCharacterName,
+      hash: this.currentCharacterHash
+    }
+  }
+
+  clearCurrentCharacter() {
+    this.currentCharacterName = null
+    this.currentCharacterHash = null
   }
 }
 
