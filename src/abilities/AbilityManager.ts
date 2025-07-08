@@ -16,7 +16,8 @@ export class AbilityManager {
   private storageKey = 'character_abilities'
 
   constructor() {
-    this.loadAbilities()
+    // Don't auto-load abilities - let them be loaded explicitly when needed
+    // This ensures new characters start with empty abilities
   }
 
   // Add a new ability to the character's known abilities
@@ -229,7 +230,14 @@ export class AbilityManager {
     }
   }
 
-  private loadAbilities(): void {
+  // Clear all learned abilities (used when creating a new character)
+  clearAbilities(): void {
+    this.learnedAbilities.clear()
+    logger.equipment('Cleared all learned abilities')
+  }
+
+  // Load abilities from localStorage (used when loading a saved character)
+  loadAbilitiesFromStorage(): void {
     try {
       const data = localStorage.getItem(this.storageKey)
       if (data) {
@@ -246,5 +254,10 @@ export class AbilityManager {
       logger.equipment('Failed to load abilities from localStorage', { error })
       this.learnedAbilities.clear()
     }
+  }
+
+  private loadAbilities(): void {
+    // This method is kept for backward compatibility but renamed to avoid confusion
+    this.loadAbilitiesFromStorage()
   }
 }

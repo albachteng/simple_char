@@ -1,4 +1,5 @@
-import { Button } from '@mantine/core'
+import { StatButtonGroup, createBonusAllocationButtons } from './components/StatButtonGroup'
+import { PickerSection } from './components/CharacterSection'
 import { Stat } from '../types'
 
 type StatBonusPickerProps = {
@@ -8,20 +9,18 @@ type StatBonusPickerProps = {
 }
 
 export function StatBonusPicker({ setter, bonusAmount, bonusNumber }: StatBonusPickerProps) {
+    const buttonConfigs = createBonusAllocationButtons(setter, bonusAmount);
+    
     return (
-        <div className="card">
-            <h1>Choose Stat for Bonus #{bonusNumber}</h1>
-            <p>Apply +{bonusAmount} to which stat?</p>
-            
-            <h3>
-                <Button onClick={() => setter("str")}>STR (+{bonusAmount})</Button>
-            </h3>
-            <h3>
-                <Button onClick={() => setter("dex")}>DEX (+{bonusAmount})</Button>
-            </h3>
-            <h3>
-                <Button onClick={() => setter("int")}>INT (+{bonusAmount})</Button>
-            </h3>
-        </div>
+        <PickerSection 
+            title={`Choose Stat for Bonus #${bonusNumber}`}
+            subtitle={`Apply +${bonusAmount} to which stat?`}
+        >
+            <StatButtonGroup
+                layout="vertical"
+                wrapInHeadings={true}
+                buttonConfigs={buttonConfigs}
+            />
+        </PickerSection>
     )
 }

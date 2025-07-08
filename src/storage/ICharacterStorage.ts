@@ -20,6 +20,7 @@ export interface SavedCharacter {
       dex: number
       int: number
     }
+    learnedAbilities?: any[] // Optional for backward compatibility
   }
   timestamp: number
 }

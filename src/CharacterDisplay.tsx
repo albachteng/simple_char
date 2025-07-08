@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@mantine/core';
 import { mod } from './useChar';
+import { StatButtonGroup, createLevelUpAllocationButtons } from './components/StatButtonGroup';
+import { CardSection } from './components/CharacterSection';
+import { CompactResourceDisplay } from './components/ResourceDisplay';
 import { AbilityManagerViewer } from './AbilityManagerViewer';
 import { InventoryViewer } from './InventoryViewer';
 import { CombatActions } from './CombatActions';
@@ -114,43 +117,29 @@ export function CharacterDisplay({
         <h2 style={{ color: '#bbb', fontSize: '16px' }}>
           {selectedRace?.charAt(0).toUpperCase() + selectedRace?.slice(1)} - Level {level}
         </h2>
-        <div className="card">
-          <h3>HP: {hp}</h3>
-          <h3>AC: {ac}</h3>
-          <h3>Maneuvers: {combat_maneuvers}</h3>
-          <h3>Finesse: {finesse_points}</h3>
-          <h3>Sorcery: {sorcery_points}</h3>
+        <CardSection>
+          <CompactResourceDisplay
+            hp={hp}
+            ac={ac}
+            combat_maneuvers={combat_maneuvers}
+            finesse_points={finesse_points}
+            sorcery_points={sorcery_points}
+            max_combat_maneuvers={max_combat_maneuvers}
+            max_finesse_points={max_finesse_points}
+            max_sorcery_points={max_sorcery_points}
+            layout="vertical"
+            size="md"
+          />
           {pending_level_up_points > 0 ? (
             <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#2a2a2a', borderRadius: '8px' }}>
               <h4 style={{ color: '#ffb347', margin: '0 0 8px 0' }}>
                 Level Up in Progress - {pending_level_up_points} point{pending_level_up_points !== 1 ? 's' : ''} remaining
               </h4>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => onAllocatePoint("str")}
-                  disabled={pending_level_up_points <= 0}
-                >
-                  +1 STR
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => onAllocatePoint("dex")}
-                  disabled={pending_level_up_points <= 0}
-                >
-                  +1 DEX
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => onAllocatePoint("int")}
-                  disabled={pending_level_up_points <= 0}
-                >
-                  +1 INT
-                </Button>
-              </div>
+              <StatButtonGroup
+                layout="horizontal"
+                wrapInHeadings={false}
+                buttonConfigs={createLevelUpAllocationButtons(onAllocatePoint, pending_level_up_points <= 0)}
+              />
             </div>
           ) : null}
           
@@ -203,7 +192,7 @@ export function CharacterDisplay({
               {showSaver ? 'Hide' : 'Save Character'}
             </Button>
           </div>
-        </div>
+        </CardSection>
         <AbilityManagerViewer
           abilityManager={abilityManager}
           abilities={abilities}
