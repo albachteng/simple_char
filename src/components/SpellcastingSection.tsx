@@ -1,6 +1,7 @@
 import { Paper, Text, Stack, Group, Badge, Accordion, Divider, ActionIcon } from '@mantine/core'
 import { IconTrash } from '@tabler/icons-react'
 import { LearnedAbility } from '../abilities/AbilityManager'
+import { COLORS, STYLES } from '../theme/constants'
 
 interface SpellcastingSectionProps {
   int: number
@@ -29,7 +30,7 @@ export function SpellcastingSection({
       </Accordion.Control>
       <Accordion.Panel>
         <Stack gap="sm">
-          <Text size="sm" style={{ color: '#bbb' }}>
+          <Text size="sm" style={{ color: COLORS.TEXT_SECONDARY }}>
             INT {int} allows spellcasting. Combine Spellwords with Metamagic to create custom spells.
           </Text>
           
@@ -38,16 +39,16 @@ export function SpellcastingSection({
               <Divider label="Known Spellwords" labelPosition="center" />
               <Stack gap="xs">
                 {learnedSpellwords.map((ability) => (
-                  <Paper key={ability.id} p="xs" withBorder style={{ backgroundColor: '#2a2a2a' }}>
+                  <Paper key={ability.id} p="xs" withBorder style={STYLES.CARD_BACKGROUND}>
                     <Group justify="space-between" align="flex-start">
                       <Stack gap={2} style={{ flex: 1 }}>
                         <Group gap="xs">
-                          <Text size="sm" fw={500} style={{ color: '#bb86fc' }}>{ability.name}</Text>
+                          <Text size="sm" fw={500} style={{ color: COLORS.SPELLWORD_ABILITY }}>{ability.name}</Text>
                           {ability.learnedAt && (
                             <Badge size="xs" color="gray" variant="outline">Lv {ability.learnedAt}</Badge>
                           )}
                         </Group>
-                        <Text size="xs" style={{ color: '#bbb', marginTop: '2px' }}>
+                        <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                           {ability.description}
                         </Text>
                       </Stack>
@@ -79,16 +80,16 @@ export function SpellcastingSection({
               <Divider label="Known Metamagic" labelPosition="center" />
               <Stack gap="xs">
                 {learnedMetamagic.map((ability) => (
-                  <Paper key={ability.id} p="xs" withBorder style={{ backgroundColor: '#2a2a2a' }}>
+                  <Paper key={ability.id} p="xs" withBorder style={STYLES.CARD_BACKGROUND}>
                     <Group justify="space-between" align="flex-start">
                       <Stack gap={2} style={{ flex: 1 }}>
                         <Group gap="xs">
-                          <Text size="sm" fw={500} style={{ color: '#03dac6' }}>{ability.name}</Text>
+                          <Text size="sm" fw={500} style={{ color: COLORS.METAMAGIC_ABILITY }}>{ability.name}</Text>
                           {ability.learnedAt && (
                             <Badge size="xs" color="gray" variant="outline">Lv {ability.learnedAt}</Badge>
                           )}
                         </Group>
-                        <Text size="xs" style={{ color: '#bbb', marginTop: '2px' }}>
+                        <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                           {ability.description}
                         </Text>
                       </Stack>

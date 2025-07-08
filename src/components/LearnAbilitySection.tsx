@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Paper, Text, Stack, Button, Select, Group } from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
 import { AbilityType } from '../abilities/AbilityManager'
+import { STYLES } from '../theme/constants'
 
 interface LearnAbilitySectionProps {
   availableTypes: AbilityType[]
@@ -43,7 +44,7 @@ export function LearnAbilitySection({ availableTypes, onLearnAbility, getAvailab
   }
 
   return (
-    <Paper p="sm" withBorder style={{ backgroundColor: '#2a2a2a' }}>
+    <Paper p="sm" withBorder style={STYLES.CARD_BACKGROUND}>
       <Stack gap="sm">
         <Text size="sm" fw={500}>Learn New Ability</Text>
         <Group>

@@ -1,4 +1,5 @@
 import { Paper, Text, Stack, Group, Badge, Accordion } from '@mantine/core'
+import { COLORS, STYLES } from '../theme/constants'
 
 interface RacialAbilitiesSectionProps {
   abilities: string[]
@@ -30,9 +31,9 @@ export function RacialAbilitiesSection({ abilities }: RacialAbilitiesSectionProp
       <Accordion.Panel>
         <Stack gap="xs">
           {abilities.map((ability, index) => (
-            <Paper key={index} p="sm" withBorder style={{ backgroundColor: '#2a2a2a' }}>
-              <Text size="sm" fw={500} style={{ color: '#ffb347' }}>{ability}</Text>
-              <Text size="xs" style={{ color: '#bbb', marginTop: '4px' }}>
+            <Paper key={index} p="sm" withBorder style={STYLES.CARD_BACKGROUND}>
+              <Text size="sm" fw={500} style={{ color: COLORS.RACIAL_ABILITY }}>{ability}</Text>
+              <Text size="xs" style={STYLES.DESCRIPTION_TEXT}>
                 {RACIAL_DESCRIPTIONS[ability] || "A special racial ability"}
               </Text>
             </Paper>
