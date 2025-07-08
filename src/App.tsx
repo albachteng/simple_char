@@ -3,6 +3,7 @@ import './App.css'
 import { useChar } from './useChar'
 import { CharacterCreationFlow } from './CharacterCreationFlow'
 import { CharacterDisplay } from './CharacterDisplay'
+import { CharacterLoader } from './CharacterLoader'
 import { LogViewer } from './LogViewer'
 import { Stat, Race } from '../types';
 
@@ -48,6 +49,7 @@ function App() {
 
   // Track if we have a created character (completed creation flow)
   const [hasCharacter, setHasCharacter] = useState(false);
+  const [showCharacterLoader, setShowCharacterLoader] = useState(false);
 
   const handleCharacterCreated = (
     newHigh: Stat,
@@ -85,6 +87,9 @@ function App() {
     setRacialBonuses(loadedRacialBonuses);
     setCharacterName(name);
     setHasCharacter(true);
+    
+    // Close the character loader modal
+    setShowCharacterLoader(false);
   };
 
   const handleReset = () => {
@@ -116,6 +121,11 @@ function App() {
         />
       ) : (
         <>
+          <CharacterLoader 
+            opened={showCharacterLoader}
+            onLoad={handleLoadCharacter} 
+            onCancel={() => setShowCharacterLoader(false)}
+          />
           <CharacterDisplay
             characterName={characterName}
             selectedRace={selectedRace!}
@@ -152,7 +162,7 @@ function App() {
             onSetStatOverride={setStatOverride}
             onGetStatOverride={getStatOverride}
             onSaveCharacter={setCharacterName}
-            onLoadCharacter={() => {}}
+            onLoadCharacter={() => setShowCharacterLoader(true)}
           />
           <LogViewer />
         </>

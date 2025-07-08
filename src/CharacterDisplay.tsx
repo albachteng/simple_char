@@ -193,6 +193,19 @@ export function CharacterDisplay({
             </Button>
           </div>
         </CardSection>
+        <CharacterSaver 
+          opened={showSaver && high && mid && selectedRace ? true : false}
+          char={char}
+          high={high}
+          mid={mid}
+          racialBonuses={racialBonuses}
+          characterName={characterName}
+          onSave={(name) => {
+            onSaveCharacter(name);
+            setShowSaver(false);
+          }}
+          onCancel={() => setShowSaver(false)}
+        />
         <AbilityManagerViewer
           abilityManager={abilityManager}
           abilities={abilities}
@@ -214,19 +227,6 @@ export function CharacterDisplay({
         <CombatActions char={char} />
         <NotesManager onNotesChange={() => char.triggerUpdate()} />
         <DiceSettingsPanel onSettingsChange={() => char.triggerUpdate()} />
-        {showSaver && high && mid && selectedRace && (
-          <CharacterSaver 
-            char={char}
-            high={high}
-            mid={mid}
-            racialBonuses={racialBonuses}
-            characterName={characterName}
-            onSave={(name) => {
-              onSaveCharacter(name);
-              setShowSaver(false);
-            }}
-          />
-        )}
       </div>
     </>
   );

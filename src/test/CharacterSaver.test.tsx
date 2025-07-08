@@ -20,11 +20,13 @@ vi.mock('../storage/LocalStorageCharacterStorage')
 describe('CharacterSaver component', () => {
   const mockChar = new Char('str', 'dex')
   const mockProps = {
+    opened: true,
     char: mockChar,
     high: 'str' as const,
     mid: 'dex' as const,
     racialBonuses: [] as any[],
-    onSave: vi.fn()
+    onSave: vi.fn(),
+    onCancel: vi.fn()
   }
 
   beforeEach(() => {

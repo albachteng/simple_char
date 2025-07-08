@@ -67,18 +67,14 @@ export function CharacterCreationFlow({
     onLoadCharacter(loadedChar, loadedHigh, loadedMid, loadedRacialBonuses, name);
   };
 
-  if (showLoader) {
-    return (
-      <CharacterLoader 
-        onLoad={handleLoadCharacter} 
-        onCancel={() => setShowLoader(false)}
-      />
-    );
-  }
-
   if (!high) {
     return (
       <div>
+        <CharacterLoader 
+          opened={showLoader}
+          onLoad={handleLoadCharacter} 
+          onCancel={() => setShowLoader(false)}
+        />
         <Picker value={'high'} setter={setHigh} />
         <div style={{ marginTop: '16px', textAlign: 'center' }}>
           <Button variant="outline" onClick={() => setShowLoader(true)}>

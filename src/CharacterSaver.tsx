@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Button, TextInput, Paper, Text, Stack } from '@mantine/core'
+import { Button, TextInput, Paper, Text, Stack, Modal } from '@mantine/core'
 import { CharacterManager } from './storage/CharacterManager'
 import { LocalStorageCharacterStorage } from './storage/LocalStorageCharacterStorage'
 import { OverwriteConfirmModal } from './OverwriteConfirmModal'
@@ -7,15 +7,17 @@ import { Char } from './useChar'
 import { Stat } from '../types'
 
 interface CharacterSaverProps {
+  opened: boolean
   char: Char
   high: Stat
   mid: Stat
   racialBonuses: Stat[]
   characterName: string
   onSave?: (name: string) => void
+  onCancel?: () => void
 }
 
-export function CharacterSaver({ char, high, mid, racialBonuses, characterName, onSave }: CharacterSaverProps) {
+export function CharacterSaver({ opened, char, high, mid, racialBonuses, characterName, onSave, onCancel }: CharacterSaverProps) {
   // Pre-populate with character name if it's not the default
   const getInitialName = () => {
     return characterName && characterName !== 'Unnamed Character' ? characterName : ''
@@ -91,9 +93,14 @@ export function CharacterSaver({ char, high, mid, racialBonuses, characterName, 
 
   return (
     <>
-      <Paper p="md" withBorder style={{ marginTop: '16px' }}>
+      <Modal 
+        opened={opened} 
+        onClose={() => onCancel?.()} 
+        title="Save Character"
+        size="md"
+        centered
+      >
         <Stack gap="sm">
-          <Text size="lg" fw={600}>Save Character</Text>
           
           <TextInput
             label="Character Name"
@@ -127,7 +134,7 @@ export function CharacterSaver({ char, high, mid, racialBonuses, characterName, 
           )}
 
         </Stack>
-      </Paper>
+      </Modal>
       
       <OverwriteConfirmModal
         isOpen={showOverwriteModal}

@@ -68,6 +68,9 @@ All notable changes to this project will be documented in this file.
 - **Dark Theme Colors**: CustomSelect uses #2a2a2a background, #e0e0e0 text, #555 borders with #646cff focus states
 - **Enhanced Log Readability**: Updated log level colors (#4a9eff, #ffb347, #ff6b6b) and alternating row backgrounds (#333/#2a2a2a)
 - **CRITICAL: Fixed ability persistence bug** - Abilities (spells, metamagic, combat maneuvers) now properly reset when creating new characters instead of persisting from previous characters (2025-07-07 21:42:19 CDT)
+- **Fixed Load Character button** - Restored functionality for "Load Character" button in CharacterDisplay that was broken during refactoring (2025-07-08 08:14:06 CDT)
+- **Improved UX with modal dialogs** - Converted CharacterLoader and CharacterSaver to use Mantine modals, providing better visibility and forcing user interaction with critical save/load flows (2025-07-08 08:52:15 CDT)
+- **Fixed CharacterLoader in creation flow** - Restored CharacterLoader modal functionality in CharacterCreationFlow and updated corresponding tests (2025-07-08 11:31:52 CDT)
 - **Race system architecture**: RACIAL_BONUS constant with flexible stat assignment including "any" stat bonuses
 - **Character storage format**: Extended ICharacterStorage with race, abilities, level choices, and inventory data
 - **Inventory system design**: InventoryManager with slot-based equipment, validation, and stat bonus calculations
