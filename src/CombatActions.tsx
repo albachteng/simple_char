@@ -4,17 +4,33 @@ import { useChar } from './useChar'
 
 interface CombatActionsProps {
   char: ReturnType<typeof useChar>['char']
+  sneakAttackMainHand: ReturnType<typeof useChar>['sneakAttackMainHand']
+  sneakAttackOffHand: ReturnType<typeof useChar>['sneakAttackOffHand']
+  assassinationMainHand: ReturnType<typeof useChar>['assassinationMainHand']
+  assassinationOffHand: ReturnType<typeof useChar>['assassinationOffHand']
+  canPerformFinesseAttacks: ReturnType<typeof useChar>['canPerformFinesseAttacks']
+  rest: ReturnType<typeof useChar>['rest']
+  finesse_points: number
 }
 
 interface CombatResult {
-  type: 'attack' | 'damage'
-  weapon: 'main-hand' | 'off-hand'
+  type: 'attack' | 'damage' | 'sneak-attack' | 'assassination' | 'rest'
+  weapon?: 'main-hand' | 'off-hand'
   result: number
   breakdown: string
   timestamp: number
 }
 
-export function CombatActions({ char }: CombatActionsProps) {
+export function CombatActions({ 
+  char, 
+  sneakAttackMainHand, 
+  sneakAttackOffHand, 
+  assassinationMainHand, 
+  assassinationOffHand, 
+  canPerformFinesseAttacks, 
+  rest, 
+  finesse_points 
+}: CombatActionsProps) {
   const [lastResult, setLastResult] = useState<CombatResult | null>(null)
 
   // Get equipped weapons info using the correct method
@@ -120,6 +136,38 @@ export function CombatActions({ char }: CombatActionsProps) {
     })
   }
 
+  const handleSneakAttack = (hand: 'main-hand' | 'off-hand') => {
+    const { result, breakdown } = hand === 'main-hand' ? sneakAttackMainHand() : sneakAttackOffHand()
+    setLastResult({
+      type: 'sneak-attack',
+      weapon: hand,
+      result,
+      breakdown,
+      timestamp: Date.now()
+    })
+  }
+
+  const handleAssassination = (hand: 'main-hand' | 'off-hand') => {
+    const { result, breakdown } = hand === 'main-hand' ? assassinationMainHand() : assassinationOffHand()
+    setLastResult({
+      type: 'assassination',
+      weapon: hand,
+      result,
+      breakdown,
+      timestamp: Date.now()
+    })
+  }
+
+  const handleRest = () => {
+    rest()
+    setLastResult({
+      type: 'rest',
+      result: 0,
+      breakdown: 'All resources restored to maximum',
+      timestamp: Date.now()
+    })
+  }
+
   // Don't show combat actions if no weapons equipped
   if (!mainHandWeapon && !offHandWeapon) {
     return null
@@ -131,15 +179,42 @@ export function CombatActions({ char }: CombatActionsProps) {
         <Text size="lg" fw={600}>Combat Actions</Text>
         
         {lastResult && (
-          <Alert color={lastResult.type === 'attack' ? 'blue' : 'red'} withCloseButton onClose={() => setLastResult(null)}>
+          <Alert 
+            color={
+              lastResult.type === 'attack' ? 'blue' : 
+              lastResult.type === 'damage' ? 'red' : 
+              lastResult.type === 'sneak-attack' ? 'orange' : 
+              lastResult.type === 'assassination' ? 'violet' : 
+              'green'
+            } 
+            withCloseButton 
+            onClose={() => setLastResult(null)}
+          >
             <Stack gap="xs">
               <Group>
                 <Text fw={600}>
-                  {lastResult.weapon} {lastResult.type === 'attack' ? 'Attack Roll' : 'Damage Roll'}: 
+                  {lastResult.type === 'rest' ? 'Rest' : 
+                   `${lastResult.weapon} ${
+                     lastResult.type === 'attack' ? 'Attack Roll' : 
+                     lastResult.type === 'damage' ? 'Damage Roll' : 
+                     lastResult.type === 'sneak-attack' ? 'Sneak Attack' : 
+                     'Assassination'
+                   }`
+                  }: 
                 </Text>
-                <Badge size="lg" color={lastResult.type === 'attack' ? 'blue' : 'red'}>
-                  {lastResult.result}
-                </Badge>
+                {lastResult.type !== 'rest' && (
+                  <Badge 
+                    size="lg" 
+                    color={
+                      lastResult.type === 'attack' ? 'blue' : 
+                      lastResult.type === 'damage' ? 'red' : 
+                      lastResult.type === 'sneak-attack' ? 'orange' : 
+                      'violet'
+                    }
+                  >
+                    {lastResult.result}
+                  </Badge>
+                )}
               </Group>
               <Text size="sm" c="dimmed" style={{ fontFamily: 'monospace' }}>
                 {lastResult.breakdown}
@@ -176,6 +251,28 @@ export function CombatActions({ char }: CombatActionsProps) {
                 >
                   Damage Roll
                 </Button>
+                {canPerformFinesseAttacks() && (
+                  <>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      color="orange"
+                      onClick={() => handleSneakAttack('main-hand')}
+                      disabled={finesse_points <= 0}
+                    >
+                      Sneak Attack ({finesse_points > 0 ? finesse_points - 1 : 0}d8)
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      color="violet"
+                      onClick={() => handleAssassination('main-hand')}
+                      disabled={finesse_points <= 0}
+                    >
+                      Assassination ({finesse_points * 2}d8 crit)
+                    </Button>
+                  </>
+                )}
               </Group>
             </Group>
           </Stack>
@@ -210,16 +307,54 @@ export function CombatActions({ char }: CombatActionsProps) {
                 >
                   Damage Roll
                 </Button>
+                {canPerformFinesseAttacks() && (
+                  <>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      color="orange"
+                      onClick={() => handleSneakAttack('off-hand')}
+                      disabled={finesse_points <= 0}
+                    >
+                      Sneak Attack ({finesse_points > 0 ? finesse_points : 0}d8)
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      color="violet"
+                      onClick={() => handleAssassination('off-hand')}
+                      disabled={finesse_points <= 0}
+                    >
+                      Assassination ({finesse_points * 2}d8 crit)
+                    </Button>
+                  </>
+                )}
               </Group>
             </Group>
           </Stack>
         )}
+
+        {/* Rest button */}
+        <Group justify="center">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            color="green"
+            onClick={handleRest}
+          >
+            Rest (Restore All Resources)
+          </Button>
+        </Group>
 
         {/* Combat information */}
         <Text size="xs" c="dimmed">
           Attack rolls: d20 + stat modifier + level (main-hand only)
           <br />
           Damage rolls: weapon die + stat modifier (main-hand only)
+          <br />
+          Sneak attacks: normal damage + finesse points d8, costs 1 finesse point
+          <br />
+          Assassination: critical hit (doubled dice) + finesse points d8, no cost
         </Text>
       </Stack>
     </Paper>

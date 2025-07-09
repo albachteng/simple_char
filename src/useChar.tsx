@@ -960,6 +960,266 @@ export class Char {
     return total
   }
 
+  // Enhanced finesse-based combat methods for dual-wielding support
+  sneakAttackMainHand(): { result: number, breakdown: string } {
+    if (this.finesse_points <= 0) {
+      return { result: 0, breakdown: 'No finesse points available' }
+    }
+
+    // Spend a finesse point
+    const success = this.spendFinessePoint()
+    if (!success) {
+      return { result: 0, breakdown: 'Failed to spend finesse point' }
+    }
+
+    const { mainHand } = this.inventory.getEquippedWeapons()
+    if (!mainHand) {
+      return { result: 0, breakdown: 'No main-hand weapon equipped' }
+    }
+
+    // Calculate base damage
+    const effectiveStats = this.getEffectiveStats()
+    const weapon_stat = WEAPON_STAT[mainHand.weaponType || 'none']
+    const stat_mod = mod(effectiveStats[weapon_stat])
+    const enchantment_bonus = mainHand.enchantmentLevel || 0
+    const weapon_die = WEAPON_DIE[mainHand.weaponType || 'none']
+    const die_roll = DiceSettings.rollOrAverage(1, weapon_die, 0)
+
+    // Add sneak attack dice based on current finesse points (after spending one)
+    const sneak_dice_count = this.finesse_points
+    let sneak_damage = 0
+    for (let i = 0; i < sneak_dice_count; i++) {
+      sneak_damage += DiceSettings.rollOrAverage(1, SNEAK_ATTACK_DIE, 0)
+    }
+
+    const total_damage = die_roll + stat_mod + enchantment_bonus + sneak_damage
+
+    // Build breakdown string
+    let breakdown = `${die_roll} (1d${weapon_die})`
+    breakdown += ` + ${stat_mod} (${weapon_stat.toUpperCase()} modifier)`
+    if (enchantment_bonus > 0) {
+      breakdown += ` + ${enchantment_bonus} (enchantment)`
+    } else if (enchantment_bonus < 0) {
+      breakdown += ` - ${Math.abs(enchantment_bonus)} (cursed)`
+    }
+    if (sneak_dice_count > 0) {
+      breakdown += ` + ${sneak_damage} (${sneak_dice_count}d8 sneak attack)`
+    } else {
+      breakdown += ` + 0 (0d8 sneak attack)`
+    }
+
+    logger.combat(`Main-hand sneak attack`, {
+      weapon: mainHand.name,
+      base_damage: die_roll + stat_mod + enchantment_bonus,
+      sneak_dice: sneak_dice_count,
+      sneak_damage,
+      total_damage,
+      finesse_points_remaining: this.finesse_points,
+      using_dice: DiceSettings.getUseDiceRolls()
+    })
+
+    this.emitter.emit("update")
+    return { result: total_damage, breakdown }
+  }
+
+  sneakAttackOffHand(): { result: number, breakdown: string } {
+    if (this.finesse_points <= 0) {
+      return { result: 0, breakdown: 'No finesse points available' }
+    }
+
+    // Spend a finesse point
+    const success = this.spendFinessePoint()
+    if (!success) {
+      return { result: 0, breakdown: 'Failed to spend finesse point' }
+    }
+
+    const { offHand } = this.inventory.getEquippedWeapons()
+    if (!offHand) {
+      return { result: 0, breakdown: 'No off-hand weapon equipped' }
+    }
+
+    // Calculate base damage (no stat modifier for off-hand)
+    const enchantment_bonus = offHand.enchantmentLevel || 0
+    const weapon_die = WEAPON_DIE[offHand.weaponType || 'none']
+    const die_roll = DiceSettings.rollOrAverage(1, weapon_die, 0)
+
+    // Add sneak attack dice based on current finesse points (after spending one)
+    const sneak_dice_count = this.finesse_points
+    let sneak_damage = 0
+    for (let i = 0; i < sneak_dice_count; i++) {
+      sneak_damage += DiceSettings.rollOrAverage(1, SNEAK_ATTACK_DIE, 0)
+    }
+
+    const total_damage = die_roll + enchantment_bonus + sneak_damage
+
+    // Build breakdown string
+    let breakdown = `${die_roll} (1d${weapon_die})`
+    if (enchantment_bonus > 0) {
+      breakdown += ` + ${enchantment_bonus} (enchantment)`
+    } else if (enchantment_bonus < 0) {
+      breakdown += ` - ${Math.abs(enchantment_bonus)} (cursed)`
+    }
+    breakdown += ` + 0 (no stat modifier)`
+    if (sneak_dice_count > 0) {
+      breakdown += ` + ${sneak_damage} (${sneak_dice_count}d8 sneak attack)`
+    } else {
+      breakdown += ` + 0 (0d8 sneak attack)`
+    }
+
+    logger.combat(`Off-hand sneak attack`, {
+      weapon: offHand.name,
+      base_damage: die_roll + enchantment_bonus,
+      sneak_dice: sneak_dice_count,
+      sneak_damage,
+      total_damage,
+      finesse_points_remaining: this.finesse_points,
+      using_dice: DiceSettings.getUseDiceRolls()
+    })
+
+    this.emitter.emit("update")
+    return { result: total_damage, breakdown }
+  }
+
+  assassinationMainHand(): { result: number, breakdown: string } {
+    if (this.finesse_points <= 0) {
+      return { result: 0, breakdown: 'No finesse points available' }
+    }
+
+    const { mainHand } = this.inventory.getEquippedWeapons()
+    if (!mainHand) {
+      return { result: 0, breakdown: 'No main-hand weapon equipped' }
+    }
+
+    // Calculate base damage with critical hit (doubled dice)
+    const effectiveStats = this.getEffectiveStats()
+    const weapon_stat = WEAPON_STAT[mainHand.weaponType || 'none']
+    const stat_mod = mod(effectiveStats[weapon_stat])
+    const enchantment_bonus = mainHand.enchantmentLevel || 0
+    const weapon_die = WEAPON_DIE[mainHand.weaponType || 'none']
+    
+    // Critical hit: roll weapon die twice
+    const die_roll_1 = DiceSettings.rollOrAverage(1, weapon_die, 0)
+    const die_roll_2 = DiceSettings.rollOrAverage(1, weapon_die, 0)
+    const total_weapon_damage = die_roll_1 + die_roll_2
+
+    // Add sneak attack dice based on current finesse points (doubled for crit)
+    const sneak_dice_count = this.finesse_points
+    let sneak_damage = 0
+    for (let i = 0; i < sneak_dice_count * 2; i++) { // Doubled for critical
+      sneak_damage += DiceSettings.rollOrAverage(1, SNEAK_ATTACK_DIE, 0)
+    }
+
+    const total_damage = total_weapon_damage + stat_mod + enchantment_bonus + sneak_damage
+
+    // Build breakdown string
+    let breakdown = `${die_roll_1} + ${die_roll_2} (2d${weapon_die} critical)`
+    breakdown += ` + ${stat_mod} (${weapon_stat.toUpperCase()} modifier)`
+    if (enchantment_bonus > 0) {
+      breakdown += ` + ${enchantment_bonus} (enchantment)`
+    } else if (enchantment_bonus < 0) {
+      breakdown += ` - ${Math.abs(enchantment_bonus)} (cursed)`
+    }
+    if (sneak_dice_count > 0) {
+      breakdown += ` + ${sneak_damage} (${sneak_dice_count * 2}d8 critical sneak attack)`
+    }
+
+    logger.combat(`Main-hand assassination`, {
+      weapon: mainHand.name,
+      weapon_damage: total_weapon_damage,
+      sneak_dice: sneak_dice_count * 2,
+      sneak_damage,
+      total_damage,
+      finesse_points_used: 0, // Assassination doesn't cost finesse points
+      using_dice: DiceSettings.getUseDiceRolls()
+    })
+
+    this.emitter.emit("update")
+    return { result: total_damage, breakdown }
+  }
+
+  assassinationOffHand(): { result: number, breakdown: string } {
+    if (this.finesse_points <= 0) {
+      return { result: 0, breakdown: 'No finesse points available' }
+    }
+
+    const { offHand } = this.inventory.getEquippedWeapons()
+    if (!offHand) {
+      return { result: 0, breakdown: 'No off-hand weapon equipped' }
+    }
+
+    // Calculate base damage with critical hit (doubled dice, no stat modifier)
+    const enchantment_bonus = offHand.enchantmentLevel || 0
+    const weapon_die = WEAPON_DIE[offHand.weaponType || 'none']
+    
+    // Critical hit: roll weapon die twice
+    const die_roll_1 = DiceSettings.rollOrAverage(1, weapon_die, 0)
+    const die_roll_2 = DiceSettings.rollOrAverage(1, weapon_die, 0)
+    const total_weapon_damage = die_roll_1 + die_roll_2
+
+    // Add sneak attack dice based on current finesse points (doubled for crit)
+    const sneak_dice_count = this.finesse_points
+    let sneak_damage = 0
+    for (let i = 0; i < sneak_dice_count * 2; i++) { // Doubled for critical
+      sneak_damage += DiceSettings.rollOrAverage(1, SNEAK_ATTACK_DIE, 0)
+    }
+
+    const total_damage = total_weapon_damage + enchantment_bonus + sneak_damage
+
+    // Build breakdown string
+    let breakdown = `${die_roll_1} + ${die_roll_2} (2d${weapon_die} critical)`
+    if (enchantment_bonus > 0) {
+      breakdown += ` + ${enchantment_bonus} (enchantment)`
+    } else if (enchantment_bonus < 0) {
+      breakdown += ` - ${Math.abs(enchantment_bonus)} (cursed)`
+    }
+    breakdown += ` + 0 (no stat modifier)`
+    if (sneak_dice_count > 0) {
+      breakdown += ` + ${sneak_damage} (${sneak_dice_count * 2}d8 critical sneak attack)`
+    }
+
+    logger.combat(`Off-hand assassination`, {
+      weapon: offHand.name,
+      weapon_damage: total_weapon_damage,
+      sneak_dice: sneak_dice_count * 2,
+      sneak_damage,
+      total_damage,
+      finesse_points_used: 0, // Assassination doesn't cost finesse points
+      using_dice: DiceSettings.getUseDiceRolls()
+    })
+
+    this.emitter.emit("update")
+    return { result: total_damage, breakdown }
+  }
+
+  // Check if character can perform finesse attacks
+  canPerformFinesseAttacks(): boolean {
+    const effectiveStats = this.getEffectiveStats()
+    return this.finesse_points > 0 && effectiveStats.dex >= MIN_FINESSE_DEX
+  }
+
+  // Rest functionality to restore all resources
+  rest(): void {
+    const oldHp = this.hp
+    const oldSorceryPoints = this.sorcery_points
+    const oldFinessePoints = this.finesse_points
+    const oldCombatManeuverPoints = this.combat_maneuver_points
+
+    // Restore all resources to maximum (HP doesn't change since there's no damage system)
+    // this.hp is already at maximum since no damage is tracked
+    this.sorcery_points = this.max_sorcery_points
+    this.finesse_points = this.max_finesse_points
+    this.combat_maneuver_points = this.max_combat_maneuver_points
+
+    logger.resourceManagement(`Character takes a full rest`, {
+      hp: { old: oldHp, new: this.hp, max: this.hp }, // HP doesn't change, it's already at max
+      sorcery_points: { old: oldSorceryPoints, new: this.sorcery_points, max: this.max_sorcery_points },
+      finesse_points: { old: oldFinessePoints, new: this.finesse_points, max: this.max_finesse_points },
+      combat_maneuver_points: { old: oldCombatManeuverPoints, new: this.combat_maneuver_points, max: this.max_combat_maneuver_points }
+    })
+
+    this.emitter.emit("update")
+  }
+
   print() {
     console.log('\n',
       "LVL: ", this.lvl, '\n', 
@@ -1071,6 +1331,13 @@ export function useChar() {
     spendCombatManeuverPoint: () => char.spendCombatManeuverPoint(),
     shortRest: () => char.shortRest(),
     longRest: () => char.longRest(),
+    rest: () => char.rest(),
+    // Finesse attack functionality
+    sneakAttackMainHand: () => char.sneakAttackMainHand(),
+    sneakAttackOffHand: () => char.sneakAttackOffHand(),
+    assassinationMainHand: () => char.assassinationMainHand(),
+    assassinationOffHand: () => char.assassinationOffHand(),
+    canPerformFinesseAttacks: () => char.canPerformFinesseAttacks(),
     // Stat override functionality
     isUsingStatOverrides: char.isUsingStatOverrides(),
     toggleStatOverrides: () => char.toggleStatOverrides(),

@@ -18,6 +18,12 @@ All notable changes to this project will be documented in this file.
 - **Local storage character persistence** - Save/load multiple characters with unique names
 - **Character name editor** - Double-click to edit character names with validation
 - **Stat override system** - Debug feature allowing temporary stat modifications with additive bonuses/penalties
+- **Finesse combat system** - Sneak attacks and assassinations for characters with finesse points (DEX 16+) [2025-07-08]
+  - Sneak attacks: Cost 1 finesse point, add remaining finesse points as d8 damage dice
+  - Assassinations: No finesse cost, critical hits (doubled dice) with finesse points as d8 damage dice
+  - Rest functionality: Restore all resources (HP, sorcery, combat maneuvers, finesse) to maximum
+  - UI integration: Combat action buttons for main-hand and off-hand weapons
+  - Comprehensive test suite for finesse mechanics and damage calculations
 - **Comprehensive inventory management** - Full equipment system with slot-based dual-wielding
 - **Equipment stat bonuses** - Items can provide stat modifications and maneuver bonuses
 - **Dice rolling system** - Toggle between random rolls and average values for consistency

@@ -65,6 +65,13 @@ interface CharacterDisplayProps {
   onGetStatOverride: (stat: Stat) => number;
   onSaveCharacter: (name: string) => void;
   onLoadCharacter: () => void;
+  // Finesse attack and rest callbacks
+  sneakAttackMainHand: () => { result: number, breakdown: string };
+  sneakAttackOffHand: () => { result: number, breakdown: string };
+  assassinationMainHand: () => { result: number, breakdown: string };
+  assassinationOffHand: () => { result: number, breakdown: string };
+  canPerformFinesseAttacks: () => boolean;
+  rest: () => void;
 }
 
 export function CharacterDisplay({
@@ -104,6 +111,12 @@ export function CharacterDisplay({
   onGetStatOverride,
   onSaveCharacter,
   onLoadCharacter,
+  sneakAttackMainHand,
+  sneakAttackOffHand,
+  assassinationMainHand,
+  assassinationOffHand,
+  canPerformFinesseAttacks,
+  rest,
 }: CharacterDisplayProps) {
   const [showSaver, setShowSaver] = useState(false);
 
@@ -225,7 +238,16 @@ export function CharacterDisplay({
           onAbilityChange={() => char.triggerUpdate()}
         />
         <InventoryViewer inventoryManager={char.inventory} onInventoryChange={onInventoryChange} />
-        <CombatActions char={char} />
+        <CombatActions 
+          char={char}
+          sneakAttackMainHand={sneakAttackMainHand}
+          sneakAttackOffHand={sneakAttackOffHand}
+          assassinationMainHand={assassinationMainHand}
+          assassinationOffHand={assassinationOffHand}
+          canPerformFinesseAttacks={canPerformFinesseAttacks}
+          rest={rest}
+          finesse_points={finesse_points}
+        />
         <NotesManager onNotesChange={() => char.triggerUpdate()} />
         <DiceSettingsPanel onSettingsChange={() => char.triggerUpdate()} />
       </div>

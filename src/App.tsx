@@ -40,6 +40,13 @@ function App() {
     toggleStatOverrides,
     setStatOverride,
     getStatOverride,
+    // Finesse attack and rest methods
+    sneakAttackMainHand,
+    sneakAttackOffHand,
+    assassinationMainHand,
+    assassinationOffHand,
+    canPerformFinesseAttacks,
+    rest,
   } = useChar()
 
   const [characterName, setCharacterName] = useState('');
@@ -173,6 +180,12 @@ function App() {
             onGetStatOverride={getStatOverride}
             onSaveCharacter={setCharacterName}
             onLoadCharacter={() => setShowCharacterLoader(true)}
+            sneakAttackMainHand={sneakAttackMainHand}
+            sneakAttackOffHand={sneakAttackOffHand}
+            assassinationMainHand={assassinationMainHand}
+            assassinationOffHand={assassinationOffHand}
+            canPerformFinesseAttacks={canPerformFinesseAttacks}
+            rest={rest}
           />
           <LogViewer characterName={characterName} />
         </>
