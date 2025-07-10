@@ -99,3 +99,36 @@ The following features are planned for development:
 - Update any game balance numbers without explicit user request
 
 When working with racial bonuses or other game mechanics, use the existing data as-is. If tests fail due to game data, update the tests to match the constants, not the other way around.
+
+## Database Migration Documentation
+
+This project is in the process of migrating from localStorage to PostgreSQL. All development should follow the comprehensive migration plan:
+
+### Primary Migration Documents
+- **[DATABASE_MIGRATION_PLAN.md](./DATABASE_MIGRATION_PLAN.md)** - Strategic overview, database schema design, and migration phases
+- **[TECHNICAL_IMPLEMENTATION_GUIDE.md](./TECHNICAL_IMPLEMENTATION_GUIDE.md)** - Detailed code specifications and implementation patterns
+
+### Migration Phase Status
+Currently in **Phase 1: Foundation** - Setting up database infrastructure and user authentication system.
+
+### Key Migration Principles
+- **Backward Compatibility**: Maintain localStorage fallback during transition
+- **Data Integrity**: All existing character data must be preserved
+- **Equipment Extensibility**: New database schema supports advanced equipment features (abilities, stat modifications, resource bonuses)
+- **User System**: Multi-user support with authentication and character ownership
+- **Universal Content**: Admin-managed content (equipment templates, universal notes) for all users
+
+### Development Approach
+- Follow the 8-week migration timeline outlined in DATABASE_MIGRATION_PLAN.md
+- Implement repository pattern with proper abstraction layers
+- Use comprehensive testing strategy covering unit, integration, and migration scenarios  
+- Maintain all current functionality while adding new database-backed features
+
+### Database Schema Highlights
+- **15+ tables** with proper relationships and indexing
+- **Extensible equipment system** supporting custom abilities and stat modifications
+- **User authentication** with JWT tokens and secure session management
+- **Universal notes system** for admin-pushed content
+- **Character logging** with per-character and global application logs
+
+When implementing new features, always check these migration documents first to ensure consistency with the overall database migration strategy.
