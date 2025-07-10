@@ -200,6 +200,62 @@ describe('Equipment Slot Conflicts', () => {
       expect(newOffHand).toBeNull()
       expect(inventory.getEquippedItemBySlot('shield')).toBeNull()
     })
+
+    it('should unequip two-handed weapon when equipping shield', () => {
+      // First equip two-handed weapon
+      inventory.equipItem(twoHandedSword.id)
+      
+      // Verify two-handed setup
+      const { mainHand, offHand } = inventory.getEquippedWeapons()
+      expect(mainHand?.id).toBe(twoHandedSword.id)
+      expect(offHand).toBeNull()
+      expect(inventory.getEquippedItemBySlot('shield')).toBeNull()
+      
+      // Equip shield - should unequip two-handed weapon
+      const result = inventory.equipItem(shield.id)
+      expect(result.success).toBe(true)
+      
+      // Verify shield is equipped and two-handed weapon is unequipped
+      const equippedShield = inventory.getEquippedItemBySlot('shield')
+      expect(equippedShield?.id).toBe(shield.id)
+      
+      const { mainHand: newMainHand, offHand: newOffHand } = inventory.getEquippedWeapons()
+      expect(newMainHand).toBeNull() // Two-handed weapon should be unequipped
+      expect(newOffHand).toBeNull()
+      
+      // Verify the two-handed weapon is no longer equipped
+      const twoHandedWeapon = inventory.getItems().find(item => item.id === twoHandedSword.id)
+      expect(twoHandedWeapon?.equipped).toBe(false)
+      expect(twoHandedWeapon?.equipmentSlot).toBeUndefined()
+    })
+
+    it('should unequip ranged weapon when equipping shield', () => {
+      // First equip ranged weapon (also two-handed)
+      inventory.equipItem(rangedBow.id)
+      
+      // Verify ranged setup
+      const { mainHand, offHand } = inventory.getEquippedWeapons()
+      expect(mainHand?.id).toBe(rangedBow.id)
+      expect(offHand).toBeNull()
+      expect(inventory.getEquippedItemBySlot('shield')).toBeNull()
+      
+      // Equip shield - should unequip ranged weapon
+      const result = inventory.equipItem(shield.id)
+      expect(result.success).toBe(true)
+      
+      // Verify shield is equipped and ranged weapon is unequipped
+      const equippedShield = inventory.getEquippedItemBySlot('shield')
+      expect(equippedShield?.id).toBe(shield.id)
+      
+      const { mainHand: newMainHand, offHand: newOffHand } = inventory.getEquippedWeapons()
+      expect(newMainHand).toBeNull() // Ranged weapon should be unequipped
+      expect(newOffHand).toBeNull()
+      
+      // Verify the ranged weapon is no longer equipped
+      const rangedWeapon = inventory.getItems().find(item => item.id === rangedBow.id)
+      expect(rangedWeapon?.equipped).toBe(false)
+      expect(rangedWeapon?.equipmentSlot).toBeUndefined()
+    })
   })
 
   describe('Complex Equipment Scenarios', () => {

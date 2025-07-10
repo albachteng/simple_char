@@ -212,12 +212,18 @@ export class InventoryManager {
         existingShield.equipmentSlot = undefined
         logger.equipment('Unequipped existing shield', { itemName: existingShield.name })
       }
-      // Shield conflicts with off-hand weapon - unequip off-hand weapon
-      const { offHand } = this.getEquippedWeapons()
+      // Shield conflicts with both off-hand weapons and two-handed weapons
+      const { mainHand, offHand } = this.getEquippedWeapons()
       if (offHand) {
         offHand.equipped = false
         offHand.equipmentSlot = undefined
         logger.equipment('Unequipped off-hand weapon to equip shield', { itemName: offHand.name })
+      }
+      // Shield also conflicts with two-handed weapons - unequip two-handed weapon
+      if (mainHand && this.isTwoHandedWeapon(mainHand)) {
+        mainHand.equipped = false
+        mainHand.equipmentSlot = undefined
+        logger.equipment('Unequipped two-handed weapon to equip shield', { itemName: mainHand.name })
       }
     } else {
       // Other item types (accessories, etc.) - just mark as equipped without slot

@@ -36,7 +36,7 @@ describe('Inventory State Management', () => {
   })
 
   describe('Equipment Slot Conflicts', () => {
-    it('should prevent equipping shield with two-handed weapon', () => {
+    it('should auto-unequip two-handed weapon when equipping shield', () => {
       const char = new Char('str', 'dex')
       
       // Create two-handed weapon and shield
@@ -62,7 +62,7 @@ describe('Inventory State Management', () => {
       const weaponResult = char.inventory.equipItem(twoHandedSword.id)
       expect(weaponResult.success).toBe(true)
       
-      // Try to equip shield - should succeed and both should be equipped (current implementation allows this)
+      // Try to equip shield - should succeed and unequip two-handed weapon
       const shieldResult = char.inventory.equipItem(shield.id)
       expect(shieldResult.success).toBe(true)
       
@@ -70,10 +70,9 @@ describe('Inventory State Management', () => {
       const equippedShield = char.inventory.getEquippedItemByType('shield')
       expect(equippedShield).toBeTruthy()
       
-      // Two-handed weapon should still be equipped (current implementation allows both)
+      // Two-handed weapon should be unequipped
       const equippedWeapon = char.inventory.getEquippedItemByType('weapon')
-      expect(equippedWeapon).toBeTruthy()
-      expect(equippedWeapon?.weaponType).toBe('two-hand')
+      expect(equippedWeapon).toBeNull()
     })
 
     it('should auto-unequip shield when equipping two-handed weapon', () => {

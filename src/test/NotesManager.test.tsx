@@ -88,6 +88,7 @@ describe('NotesManager component', () => {
     await user.click(expandButton)
     
     // Should show preview text (with newlines preserved)
+	// @ts-ignore next line
     const previewText = screen.getAllByText((_, element) => {
       return element?.textContent?.includes('Line 1') && 
              element?.textContent?.includes('Line 2') && 
