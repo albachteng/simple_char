@@ -1,4 +1,4 @@
-import { Paper, Text, Stack, Group, Badge, Accordion, ActionIcon } from '@mantine/core'
+import { Paper, Text, Stack, Group, Badge, Accordion, ActionIcon, Button } from '@mantine/core'
 import { IconTrash } from '@tabler/icons-react'
 import { LearnedAbility } from '../abilities/AbilityManager'
 import { COLORS, STYLES } from '../theme/constants'
@@ -9,6 +9,7 @@ interface CombatManeuversSectionProps {
   max_combat_maneuvers: number
   learnedManeuvers: LearnedAbility[]
   onForgetAbility: (ability: LearnedAbility) => void
+  spendCombatManeuverPoint?: () => boolean
 }
 
 export function CombatManeuversSection({ 
@@ -16,7 +17,8 @@ export function CombatManeuversSection({
   combat_maneuvers, 
   max_combat_maneuvers, 
   learnedManeuvers, 
-  onForgetAbility 
+  onForgetAbility,
+  spendCombatManeuverPoint
 }: CombatManeuversSectionProps) {
   return (
     <Accordion.Item value="combat">
@@ -31,6 +33,20 @@ export function CombatManeuversSection({
           <Text size="sm" style={{ color: COLORS.TEXT_SECONDARY }}>
             STR {str} (≥16) grants {max_combat_maneuvers} combat maneuver uses per encounter. Current: {combat_maneuvers} remaining.
           </Text>
+          
+          {spendCombatManeuverPoint && (
+            <Group justify="center">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                color="red"
+                onClick={() => spendCombatManeuverPoint()}
+                disabled={combat_maneuvers <= 0}
+              >
+                Use Combat Maneuver (Spend 1 Use)
+              </Button>
+            </Group>
+          )}
           {learnedManeuvers.length > 0 ? (
             <Stack gap="xs">
               {learnedManeuvers.map((ability) => (

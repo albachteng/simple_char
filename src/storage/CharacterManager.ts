@@ -189,6 +189,11 @@ export class CharacterManager {
       char.setFinesseThresholdLevel(data.finesseThresholdLevel)
     }
     
+    // Restore notes (for backward compatibility, default to empty string)
+    if (data.notes !== undefined) {
+      char.updateNotes(data.notes)
+    }
+    
     // Recalculate resource values with the restored threshold data
     char.updateMaxValues()
     

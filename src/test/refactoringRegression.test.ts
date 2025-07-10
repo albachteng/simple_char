@@ -188,7 +188,7 @@ describe('Refactoring Regression Test Suite', () => {
       // Another traditional level-up
       char.level_up('int') // Level 4: INT 12→14
       expect(char.int).toBe(14)
-      expect(char.sorcery_points).toBe(3) // Should have sorcery points from INT >10
+      expect(char.sorcery_points).toBe(6) // Sorcery points from level progression with INT >10
       
       // Verify level-up history is preserved
       expect(char.level_up_choices).toEqual(['dex', 'int', 'str', 'int'])

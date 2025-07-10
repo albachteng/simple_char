@@ -39,37 +39,8 @@ export class InventoryManager {
       }
     }
 
-    // Check weapon and shield conflicts for two-handed weapons
-    if (item.type === 'weapon' && this.isTwoHandedWeapon(item)) {
-      const equippedShield = this.getEquippedItemBySlot('shield')
-      const { mainHand, offHand } = this.getEquippedWeapons()
-      
-      if (equippedShield) {
-        return {
-          canEquip: false,
-          reason: `Cannot equip two-handed weapon while using a shield. Unequip the shield first.`
-        }
-      }
-      
-      if (mainHand && offHand) {
-        return {
-          canEquip: false,
-          reason: `Cannot equip two-handed weapon while dual-wielding. Unequip one weapon first.`
-        }
-      }
-    }
-
-    // Check shield conflicts with two-handed weapons
-    if (item.type === 'shield') {
-      const { mainHand, offHand } = this.getEquippedWeapons()
-      
-      if ((mainHand && this.isTwoHandedWeapon(mainHand)) || (offHand && this.isTwoHandedWeapon(offHand))) {
-        return {
-          canEquip: false,
-          reason: `Cannot equip shield while wielding a two-handed weapon. Unequip the weapon first.`
-        }
-      }
-    }
+    // Note: Equipment conflicts (shields vs weapons, two-handed vs dual-wielding) 
+    // are handled automatically in the equipItem method - they don't prevent equipping
 
     return { canEquip: true }
   }
@@ -175,7 +146,7 @@ export class InventoryManager {
     
     if (item.type === 'weapon') {
       if (this.isTwoHandedWeapon(item)) {
-        // Two-handed weapons go to main-hand and unequip both hands
+        // Two-handed weapons go to main-hand and unequip both hands and shield
         targetSlot = 'main-hand'
         const { mainHand, offHand } = this.getEquippedWeapons()
         if (mainHand) {
@@ -188,13 +159,33 @@ export class InventoryManager {
           offHand.equipmentSlot = undefined
           logger.equipment('Unequipped off-hand weapon for two-handed weapon', { itemName: offHand.name })
         }
+        // Two-handed weapons also conflict with shields
+        const equippedShield = this.getEquippedItemBySlot('shield')
+        if (equippedShield) {
+          equippedShield.equipped = false
+          equippedShield.equipmentSlot = undefined
+          logger.equipment('Unequipped shield for two-handed weapon', { itemName: equippedShield.name })
+        }
       } else {
         // One-handed weapons: first weapon goes to main-hand, second to off-hand
         const { mainHand, offHand } = this.getEquippedWeapons()
         if (!mainHand) {
           targetSlot = 'main-hand'
+        } else if (this.isTwoHandedWeapon(mainHand)) {
+          // Replace two-handed weapon with one-handed weapon
+          mainHand.equipped = false
+          mainHand.equipmentSlot = undefined
+          targetSlot = 'main-hand'
+          logger.equipment('Unequipped two-handed weapon to equip one-handed weapon', { itemName: mainHand.name })
         } else if (!offHand) {
           targetSlot = 'off-hand'
+          // Off-hand weapon conflicts with shield - unequip shield
+          const equippedShield = this.getEquippedItemBySlot('shield')
+          if (equippedShield) {
+            equippedShield.equipped = false
+            equippedShield.equipmentSlot = undefined
+            logger.equipment('Unequipped shield to equip off-hand weapon', { itemName: equippedShield.name })
+          }
         } else {
           // Both slots occupied, replace main-hand
           mainHand.equipped = false
@@ -220,6 +211,13 @@ export class InventoryManager {
         existingShield.equipped = false
         existingShield.equipmentSlot = undefined
         logger.equipment('Unequipped existing shield', { itemName: existingShield.name })
+      }
+      // Shield conflicts with off-hand weapon - unequip off-hand weapon
+      const { offHand } = this.getEquippedWeapons()
+      if (offHand) {
+        offHand.equipped = false
+        offHand.equipmentSlot = undefined
+        logger.equipment('Unequipped off-hand weapon to equip shield', { itemName: offHand.name })
       }
     } else {
       // Other item types (accessories, etc.) - just mark as equipped without slot

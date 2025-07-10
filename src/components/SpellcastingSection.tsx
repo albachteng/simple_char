@@ -1,4 +1,4 @@
-import { Paper, Text, Stack, Group, Badge, Accordion, Divider, ActionIcon } from '@mantine/core'
+import { Paper, Text, Stack, Group, Badge, Accordion, Divider, ActionIcon, Button } from '@mantine/core'
 import { IconTrash } from '@tabler/icons-react'
 import { LearnedAbility } from '../abilities/AbilityManager'
 import { COLORS, STYLES } from '../theme/constants'
@@ -10,6 +10,7 @@ interface SpellcastingSectionProps {
   learnedSpellwords: LearnedAbility[]
   learnedMetamagic: LearnedAbility[]
   onForgetAbility: (ability: LearnedAbility) => void
+  spendSorceryPoint?: () => boolean
 }
 
 export function SpellcastingSection({ 
@@ -18,7 +19,8 @@ export function SpellcastingSection({
   max_sorcery_points, 
   learnedSpellwords, 
   learnedMetamagic, 
-  onForgetAbility 
+  onForgetAbility,
+  spendSorceryPoint
 }: SpellcastingSectionProps) {
   return (
     <Accordion.Item value="spellcasting">
@@ -33,6 +35,20 @@ export function SpellcastingSection({
           <Text size="sm" style={{ color: COLORS.TEXT_SECONDARY }}>
             INT {int} allows spellcasting. Combine Spellwords with Metamagic to create custom spells.
           </Text>
+          
+          {spendSorceryPoint && (
+            <Group justify="center">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                color="purple"
+                onClick={() => spendSorceryPoint()}
+                disabled={sorcery_points <= 0}
+              >
+                Cast a Spell (Spend 1 Sorcery Point)
+              </Button>
+            </Group>
+          )}
           
           {learnedSpellwords.length > 0 ? (
             <>

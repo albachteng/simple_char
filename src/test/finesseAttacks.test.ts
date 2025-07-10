@@ -70,7 +70,7 @@ describe('Finesse Attack Mechanics', () => {
       })
       
       char.inventory.addItem(offHandDagger)
-      const equipResult = char.inventory.equipItem(offHandDagger.id, 'offHand')
+      const equipResult = char.inventory.equipItem(offHandDagger.id)
       expect(equipResult.success).toBe(true)
       
       const initialFinessePoints = char.finesse_points
@@ -138,7 +138,7 @@ describe('Finesse Attack Mechanics', () => {
       })
       
       char.inventory.addItem(offHandDagger)
-      const equipResult = char.inventory.equipItem(offHandDagger.id, 'offHand')
+      const equipResult = char.inventory.equipItem(offHandDagger.id)
       expect(equipResult.success).toBe(true)
       
       const initialFinessePoints = char.finesse_points

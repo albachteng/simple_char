@@ -22,6 +22,9 @@ interface AbilityManagerViewerProps {
   finesse_points: number
   max_finesse_points: number
   onAbilityChange: () => void
+  // Resource spending functions
+  spendSorceryPoint?: () => boolean
+  spendCombatManeuverPoint?: () => boolean
 }
 
 
@@ -40,7 +43,9 @@ export function AbilityManagerViewer({
   max_combat_maneuvers,
   finesse_points,
   max_finesse_points,
-  onAbilityChange 
+  onAbilityChange,
+  spendSorceryPoint,
+  spendCombatManeuverPoint
 }: AbilityManagerViewerProps) {
   
   // Determine which ability types are available
@@ -107,6 +112,7 @@ export function AbilityManagerViewer({
               learnedSpellwords={learnedSpellwords}
               learnedMetamagic={learnedMetamagic}
               onForgetAbility={handleForgetAbility}
+              spendSorceryPoint={spendSorceryPoint}
             />
           )}
           
@@ -117,6 +123,7 @@ export function AbilityManagerViewer({
               max_combat_maneuvers={max_combat_maneuvers}
               learnedManeuvers={learnedManeuvers}
               onForgetAbility={handleForgetAbility}
+              spendCombatManeuverPoint={spendCombatManeuverPoint}
             />
           )}
           

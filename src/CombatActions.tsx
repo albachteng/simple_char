@@ -11,6 +11,14 @@ interface CombatActionsProps {
   canPerformFinesseAttacks: ReturnType<typeof useChar>['canPerformFinesseAttacks']
   rest: ReturnType<typeof useChar>['rest']
   finesse_points: number
+  // Resource spending functions
+  spendSorceryPoint?: () => boolean
+  spendCombatManeuverPoint?: () => boolean
+  // Resource counts for display
+  sorcery_points?: number
+  combat_maneuvers?: number
+  max_sorcery_points?: number
+  max_combat_maneuvers?: number
 }
 
 interface CombatResult {
@@ -29,7 +37,13 @@ export function CombatActions({
   assassinationOffHand, 
   canPerformFinesseAttacks, 
   rest, 
-  finesse_points 
+  finesse_points,
+  spendSorceryPoint,
+  spendCombatManeuverPoint,
+  sorcery_points = 0,
+  combat_maneuvers = 0,
+  max_sorcery_points = 0,
+  max_combat_maneuvers = 0
 }: CombatActionsProps) {
   const [lastResult, setLastResult] = useState<CombatResult | null>(null)
 
@@ -334,8 +348,32 @@ export function CombatActions({
           </Stack>
         )}
 
-        {/* Rest button */}
-        <Group justify="center">
+        {/* Resource consumption buttons */}
+        <Group justify="center" gap="xs">
+          {spendSorceryPoint && max_sorcery_points > 0 && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              color="purple"
+              onClick={() => spendSorceryPoint()}
+              disabled={sorcery_points <= 0}
+            >
+              Cast Spell ({sorcery_points}/{max_sorcery_points})
+            </Button>
+          )}
+          
+          {spendCombatManeuverPoint && max_combat_maneuvers > 0 && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              color="orange"
+              onClick={() => spendCombatManeuverPoint()}
+              disabled={combat_maneuvers <= 0}
+            >
+              Combat Maneuver ({combat_maneuvers}/{max_combat_maneuvers})
+            </Button>
+          )}
+          
           <Button 
             size="sm" 
             variant="outline" 

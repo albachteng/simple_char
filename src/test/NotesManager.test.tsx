@@ -12,26 +12,23 @@ const renderWithMantine = (component: React.ReactNode) => {
   )
 }
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-}
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-})
+// Mock data
+const mockNotes = [
+  {
+    id: '1',
+    content: 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5',
+    timestamp: Date.now() - (60 * 60 * 1000), // 1 hour ago
+    createdAt: new Date(Date.now() - (60 * 60 * 1000)).toLocaleString()
+  }
+]
 
 describe('NotesManager component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorageMock.getItem.mockReturnValue(null)
   })
 
   it('should render notes manager with title', () => {
-    renderWithMantine(<NotesManager />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={() => {}} />)
     
     expect(screen.getByText('Notes')).toBeInTheDocument()
     expect(screen.getByText('+ Add Note')).toBeInTheDocument()
@@ -39,7 +36,7 @@ describe('NotesManager component', () => {
 
   it('should show no notes message initially', async () => {
     const user = userEvent.setup()
-    renderWithMantine(<NotesManager />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={() => {}} />)
     
     // Click to expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
@@ -51,7 +48,7 @@ describe('NotesManager component', () => {
   it('should allow adding a new note', async () => {
     const user = userEvent.setup()
     const onNotesChange = vi.fn()
-    renderWithMantine(<NotesManager onNotesChange={onNotesChange} />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={onNotesChange} />)
     
     // Expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
@@ -71,80 +68,69 @@ describe('NotesManager component', () => {
     
     // Check that note was added
     expect(screen.getByText('This is my first note')).toBeInTheDocument()
-    expect(localStorageMock.setItem).toHaveBeenCalled()
     expect(onNotesChange).toHaveBeenCalled()
+    // Verify the callback was called with the correct data
+    const callArgs = onNotesChange.mock.calls[0][0]
+    const parsedNotes = JSON.parse(callArgs)
+    expect(parsedNotes).toHaveLength(1)
+    expect(parsedNotes[0].content).toBe('This is my first note')
   })
 
   it('should show note preview when collapsed', async () => {
     const user = userEvent.setup()
     
-    // Mock localStorage with existing note
-    const mockNote = {
-      id: '1',
-      content: 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5',
-      timestamp: Date.now(),
-      createdAt: new Date().toLocaleString()
-    }
-    localStorageMock.getItem.mockReturnValue(JSON.stringify([mockNote]))
-    
-    renderWithMantine(<NotesManager />)
+    // Pass existing note via props
+    const notesData = JSON.stringify(mockNotes)
+    renderWithMantine(<NotesManager notes={notesData} onNotesChange={() => {}} />)
     
     // Expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
     await user.click(expandButton)
     
     // Should show preview text (with newlines preserved)
-    expect(screen.getByText((_, element) => {
-      return element?.textContent === 'Line 1\nLine 2\nLine 3...'
-    })).toBeInTheDocument()
+    const previewText = screen.getAllByText((_, element) => {
+      return element?.textContent?.includes('Line 1') && 
+             element?.textContent?.includes('Line 2') && 
+             element?.textContent?.includes('Line 3...')
+    })[0]
+    expect(previewText).toBeInTheDocument()
     expect(screen.getByText('Click to expand...')).toBeInTheDocument()
   })
 
   it('should expand and collapse notes on click', async () => {
     const user = userEvent.setup()
     
-    // Mock localStorage with existing note
-    const mockNote = {
-      id: '1',
-      content: 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5',
-      timestamp: Date.now(),
-      createdAt: new Date().toLocaleString()
-    }
-    localStorageMock.getItem.mockReturnValue(JSON.stringify([mockNote]))
-    
-    renderWithMantine(<NotesManager />)
+    // Pass existing note via props
+    const notesData = JSON.stringify(mockNotes)
+    renderWithMantine(<NotesManager notes={notesData} onNotesChange={() => {}} />)
     
     // Expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
     await user.click(expandButton)
     
-    // Click on the note to expand it
-    const noteCard = screen.getByText((_, element) => {
-      return element?.textContent === 'Line 1\nLine 2\nLine 3...'
-    })
-    await user.click(noteCard)
+    // Click on the expand indicator to expand the note
+    const expandIndicator = screen.getByText('Click to expand...')
+    await user.click(expandIndicator)
     
-    // Should show full content
-    expect(screen.getByText((_, element) => {
-      return element?.textContent === 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5'
-    })).toBeInTheDocument()
+    // Should show full content (verify by checking that expand text is gone and Line 4, Line 5 are now visible)
     expect(screen.queryByText('Click to expand...')).not.toBeInTheDocument()
+    expect(screen.getByText(/Line 4/)).toBeInTheDocument()
+    expect(screen.getByText(/Line 5/)).toBeInTheDocument()
   })
 
   it('should delete notes when delete button is clicked', async () => {
     const user = userEvent.setup()
     const onNotesChange = vi.fn()
     
-    // Mock localStorage with existing note
-    const mockNote = {
+    // Pass existing note via props
+    const deleteNote = {
       id: '1',
       content: 'Note to delete',
       timestamp: Date.now(),
       createdAt: new Date().toLocaleString()
     }
-    localStorageMock.getItem.mockReturnValue(JSON.stringify([mockNote]))
-    
-    renderWithMantine(<NotesManager onNotesChange={onNotesChange} />)
+    const notesData = JSON.stringify([deleteNote])
+    renderWithMantine(<NotesManager notes={notesData} onNotesChange={onNotesChange} />)
     
     // Expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
@@ -156,24 +142,15 @@ describe('NotesManager component', () => {
     
     // Note should be removed
     expect(screen.queryByText('Note to delete')).not.toBeInTheDocument()
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('character_generator_notes', '[]')
-    expect(onNotesChange).toHaveBeenCalled()
+    expect(onNotesChange).toHaveBeenCalledWith('[]')
   })
 
   it('should format timestamps correctly', async () => {
     const user = userEvent.setup()
     
-    // Mock note with specific timestamp (1 hour ago)
-    const oneHourAgo = Date.now() - (60 * 60 * 1000)
-    const mockNote = {
-      id: '1',
-      content: 'Timestamped note',
-      timestamp: oneHourAgo,
-      createdAt: new Date(oneHourAgo).toLocaleString()
-    }
-    localStorageMock.getItem.mockReturnValue(JSON.stringify([mockNote]))
-    
-    renderWithMantine(<NotesManager />)
+    // Use the mock note with 1 hour ago timestamp
+    const notesData = JSON.stringify(mockNotes)
+    renderWithMantine(<NotesManager notes={notesData} onNotesChange={() => {}} />)
     
     // Expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
@@ -185,7 +162,7 @@ describe('NotesManager component', () => {
 
   it('should cancel note creation', async () => {
     const user = userEvent.setup()
-    renderWithMantine(<NotesManager />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={() => {}} />)
     
     // Expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
@@ -205,12 +182,11 @@ describe('NotesManager component', () => {
     
     // Should not save the note
     expect(screen.queryByText('Draft note')).not.toBeInTheDocument()
-    expect(localStorageMock.setItem).not.toHaveBeenCalled()
   })
 
   it('should disable save button when note is empty', async () => {
     const user = userEvent.setup()
-    renderWithMantine(<NotesManager />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={() => {}} />)
     
     // Expand notes section
     const expandButton = screen.getByLabelText('Expand notes')
@@ -227,7 +203,7 @@ describe('NotesManager component', () => {
 
   it('should auto-expand notes section when clicking Add Note while collapsed', async () => {
     const user = userEvent.setup()
-    renderWithMantine(<NotesManager />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={() => {}} />)
     
     // Notes section should start collapsed
     expect(screen.queryByPlaceholderText('Write your note here...')).not.toBeInTheDocument()
@@ -245,7 +221,7 @@ describe('NotesManager component', () => {
 
   it('should abandon empty draft when collapsing notes section', async () => {
     const user = userEvent.setup()
-    renderWithMantine(<NotesManager />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={() => {}} />)
     
     // Start adding a note (auto-expands)
     const addButton = screen.getByText('+ Add Note')
@@ -272,7 +248,7 @@ describe('NotesManager component', () => {
 
   it('should preserve draft with content when collapsing notes section', async () => {
     const user = userEvent.setup()
-    renderWithMantine(<NotesManager />)
+    renderWithMantine(<NotesManager notes="" onNotesChange={() => {}} />)
     
     // Start adding a note
     const addButton = screen.getByText('+ Add Note')

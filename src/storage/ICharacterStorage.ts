@@ -25,6 +25,7 @@ export interface SavedCharacter {
     sorceryThresholdLevel?: number | null
     doubleSorceryThresholdLevel?: number | null
     finesseThresholdLevel?: number | null
+    notes?: string // Optional for backward compatibility - per-character notes
   }
   timestamp: number
 }

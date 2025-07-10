@@ -47,6 +47,12 @@ function App() {
     assassinationOffHand,
     canPerformFinesseAttacks,
     rest,
+    // Resource spending methods
+    spendSorceryPoint,
+    spendCombatManeuverPoint,
+    // Notes functionality
+    notes,
+    updateNotes,
   } = useChar()
 
   const [characterName, setCharacterName] = useState('');
@@ -186,6 +192,10 @@ function App() {
             assassinationOffHand={assassinationOffHand}
             canPerformFinesseAttacks={canPerformFinesseAttacks}
             rest={rest}
+            spendSorceryPoint={spendSorceryPoint}
+            spendCombatManeuverPoint={spendCombatManeuverPoint}
+            notes={notes}
+            updateNotes={updateNotes}
           />
           <LogViewer characterName={characterName} />
         </>

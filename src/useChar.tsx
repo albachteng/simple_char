@@ -72,6 +72,9 @@ export class Char {
   private sorceryThresholdLevel: number | null = null // When INT >= 11 was first reached
   private doubleSorceryThresholdLevel: number | null = null // When INT > 14 was first reached  
   private finesseThresholdLevel: number | null = null // When DEX >= 16 was first reached
+  
+  // Character notes
+  notes: string = ''
   constructor(high: Stat, med: Stat, race: Race | null = null, racialBonuses: Stat[] = []) {
     logger.charCreation(`Creating new character with high stat: ${high}, medium stat: ${med}, race: ${race || 'none'}`)
     
@@ -1258,6 +1261,17 @@ export class Char {
   setFinesseThresholdLevel(level: number | null): void {
     this.finesseThresholdLevel = level
   }
+  
+  // Notes management
+  updateNotes(newNotes: string): void {
+    this.notes = newNotes
+    logger.charCreation(`Updated character notes`, { notesLength: newNotes.length })
+    this.emitter.emit("update")
+  }
+
+  getNotes(): string {
+    return this.notes
+  }
 }
 
 export const level10 = (name: string, levels: Stat[], high: Stat, med: Stat, weapon: Weapon, armor: Armor) => {
@@ -1343,5 +1357,8 @@ export function useChar() {
     toggleStatOverrides: () => char.toggleStatOverrides(),
     setStatOverride: (stat: Stat, value: number) => char.setStatOverride(stat, value),
     getStatOverride: (stat: Stat) => char.getStatOverride(stat),
+    // Notes functionality
+    notes: char.getNotes(),
+    updateNotes: (notes: string) => char.updateNotes(notes),
   }
 }

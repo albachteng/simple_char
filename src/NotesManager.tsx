@@ -10,38 +10,39 @@ interface Note {
 }
 
 interface NotesManagerProps {
-  onNotesChange?: () => void
+  notes: string
+  onNotesChange: (notes: string) => void
 }
 
-export function NotesManager({ onNotesChange }: NotesManagerProps) {
+export function NotesManager({ notes: characterNotes, onNotesChange }: NotesManagerProps) {
   const [notes, setNotes] = useState<Note[]>([])
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null)
   const [isAddingNote, setIsAddingNote] = useState(false)
   const [newNoteContent, setNewNoteContent] = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
-  const STORAGE_KEY = 'character_generator_notes'
-
-  // Load notes from localStorage on component mount
+  // Load notes from character notes prop on component mount and when characterNotes changes
   useEffect(() => {
     try {
-      const storedNotes = localStorage.getItem(STORAGE_KEY)
-      if (storedNotes) {
-        const parsedNotes = JSON.parse(storedNotes)
+      if (characterNotes && characterNotes.trim() !== '') {
+        const parsedNotes = JSON.parse(characterNotes)
         setNotes(parsedNotes)
+      } else {
+        setNotes([])
       }
     } catch (error) {
-      console.warn('Failed to load notes from localStorage:', error)
+      console.warn('Failed to parse character notes:', error)
+      setNotes([])
     }
-  }, [])
+  }, [characterNotes])
 
-  // Save notes to localStorage whenever notes change
+  // Save notes to character via callback
   const saveNotes = (updatedNotes: Note[]) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotes))
-      onNotesChange?.()
+      const notesString = JSON.stringify(updatedNotes)
+      onNotesChange(notesString)
     } catch (error) {
-      console.warn('Failed to save notes to localStorage:', error)
+      console.warn('Failed to serialize notes:', error)
     }
   }
 

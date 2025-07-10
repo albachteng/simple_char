@@ -33,7 +33,9 @@ export class CharacterHasher {
       // Include threshold tracking for consistent hashing
       sorceryThresholdLevel: char.getSorceryThresholdLevel(),
       doubleSorceryThresholdLevel: char.getDoubleSorceryThresholdLevel(),
-      finesseThresholdLevel: char.getFinesseThresholdLevel()
+      finesseThresholdLevel: char.getFinesseThresholdLevel(),
+      // Include notes in hash
+      notes: char.getNotes()
     }
     
     // Simple hash function using character data
@@ -73,7 +75,9 @@ export class CharacterHasher {
         // Include threshold tracking for proper resource progression
         sorceryThresholdLevel: char.getSorceryThresholdLevel(),
         doubleSorceryThresholdLevel: char.getDoubleSorceryThresholdLevel(),
-        finesseThresholdLevel: char.getFinesseThresholdLevel()
+        finesseThresholdLevel: char.getFinesseThresholdLevel(),
+        // Include notes in saved character data
+        notes: char.getNotes()
       },
       timestamp: Date.now()
     }

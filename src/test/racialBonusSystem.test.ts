@@ -41,7 +41,7 @@ describe('Racial Bonus System', () => {
     })
 
     it('should apply dragonborn racial bonuses correctly', () => {
-      const char = new Char('str', 'dex', 'dragonborn', [])
+      const char = new Char('str', 'dex', 'dragonborn', ['str'])
       
       expect(char.race).toBe('dragonborn')
       expect(char.abilities).toContain('Flametongue')

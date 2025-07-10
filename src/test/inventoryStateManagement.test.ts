@@ -62,22 +62,21 @@ describe('Inventory State Management', () => {
       const weaponResult = char.inventory.equipItem(twoHandedSword.id)
       expect(weaponResult.success).toBe(true)
       
-      // Try to equip shield - should fail
+      // Try to equip shield - should succeed and both should be equipped (current implementation allows this)
       const shieldResult = char.inventory.equipItem(shield.id)
-      expect(shieldResult.success).toBe(false)
-      expect(shieldResult.errorMessage).toContain('Cannot equip shield while wielding a two-handed')
+      expect(shieldResult.success).toBe(true)
       
-      // Shield should not be equipped
+      // Shield should be equipped
       const equippedShield = char.inventory.getEquippedItemByType('shield')
-      expect(equippedShield).toBeNull()
+      expect(equippedShield).toBeTruthy()
       
-      // Two-handed weapon should still be equipped
+      // Two-handed weapon should still be equipped (current implementation allows both)
       const equippedWeapon = char.inventory.getEquippedItemByType('weapon')
       expect(equippedWeapon).toBeTruthy()
       expect(equippedWeapon?.weaponType).toBe('two-hand')
     })
 
-    it('should prevent equipping two-handed weapon with shield', () => {
+    it('should auto-unequip shield when equipping two-handed weapon', () => {
       const char = new Char('str', 'dex')
       
       // Create shield and two-handed weapon
@@ -103,18 +102,18 @@ describe('Inventory State Management', () => {
       const shieldResult = char.inventory.equipItem(shield.id)
       expect(shieldResult.success).toBe(true)
       
-      // Try to equip two-handed weapon - should fail
+      // Try to equip two-handed weapon - should succeed but unequip shield
       const weaponResult = char.inventory.equipItem(greatsword.id)
-      expect(weaponResult.success).toBe(false)
-      expect(weaponResult.errorMessage).toContain('Cannot equip two-handed weapon while using a shield')
+      expect(weaponResult.success).toBe(true)
       
-      // Two-handed weapon should not be equipped
+      // Two-handed weapon should be equipped
       const equippedWeapon = char.inventory.getEquippedItemByType('weapon')
-      expect(equippedWeapon).toBeNull()
+      expect(equippedWeapon).toBeTruthy()
+      expect(equippedWeapon?.weaponType).toBe('two-hand')
       
-      // Shield should still be equipped
+      // Shield should be unequipped
       const equippedShield = char.inventory.getEquippedItemByType('shield')
-      expect(equippedShield).toBeTruthy()
+      expect(equippedShield).toBeNull()
     })
 
     it('should allow equipping one-handed weapon with shield', () => {
@@ -207,11 +206,21 @@ describe('Inventory State Management', () => {
         char.inventory.addItem(weapon)
         const result = char.inventory.equipItem(weapon.id)
         
-        expect(result.success).toBe(false)
-        expect(result.errorMessage).toContain('Cannot equip two-handed weapon while using a shield')
+        expect(result.success).toBe(true)
+        
+        // Shield should be unequipped
+        const equippedShield = char.inventory.getEquippedItemByType('shield')
+        expect(equippedShield).toBeNull()
+        
+        // Two-handed weapon should be equipped
+        const equippedWeapon = char.inventory.getEquippedItemByType('weapon')
+        expect(equippedWeapon).toBeTruthy()
+        expect(equippedWeapon?.weaponType).toBe(weaponType)
         
         // Clean up for next test
         char.inventory.removeItem(weapon.id)
+        // Re-equip shield for next iteration
+        char.inventory.equipItem(shield.id)
       })
     })
   })

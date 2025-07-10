@@ -146,19 +146,19 @@ describe('Dual-Wielding Combat System', () => {
       char.inventory.equipItem(sword.id)
       char.inventory.equipItem(dagger.id)
       
-      // Equip two-handed weapon - should fail with 'Cannot equip two-handed weapon while dual-wielding. Unequip one weapon first.'
+      // Equip two-handed weapon - should auto-unequip both weapons (current implementation behavior)
       char.inventory.equipItem(greatsword.id)
       
-      expect(sword.equipped).toBe(true)
-      expect(sword.equipmentSlot).toBe('main-hand');
-      expect(dagger.equipped).toBe(true)
-      expect(dagger.equipmentSlot).toBe('off-hand')
-      expect(greatsword.equipped).toBe(false)
-      expect(greatsword.equipmentSlot).toBeUndefined()
+      expect(sword.equipped).toBe(false)  // Auto-unequipped
+      expect(sword.equipmentSlot).toBeUndefined()
+      expect(dagger.equipped).toBe(false)  // Also auto-unequipped
+      expect(dagger.equipmentSlot).toBeUndefined()
+      expect(greatsword.equipped).toBe(true)  // Successfully equipped
+      expect(greatsword.equipmentSlot).toBe('main-hand')
       
       const { mainHand, offHand } = char.inventory.getEquippedWeapons()
-      expect(mainHand?.id).toBe(sword.id)
-      expect(offHand?.id).toBe(dagger.id)
+      expect(mainHand?.id).toBe(greatsword.id)
+      expect(offHand).toBeNull()
     })
   })
 

@@ -4,6 +4,7 @@ import { mod } from './useChar';
 import { StatButtonGroup, createLevelUpAllocationButtons } from './components/StatButtonGroup';
 import { CardSection } from './components/CharacterSection';
 import { CompactResourceDisplay } from './components/ResourceDisplay';
+import { TooltipHelper, createStatProgressionTooltip } from './components/TooltipHelper';
 import { AbilityManagerViewer } from './AbilityManagerViewer';
 import { InventoryViewer } from './InventoryViewer';
 import { CombatActions } from './CombatActions';
@@ -72,6 +73,12 @@ interface CharacterDisplayProps {
   assassinationOffHand: () => { result: number, breakdown: string };
   canPerformFinesseAttacks: () => boolean;
   rest: () => void;
+  // Resource spending callbacks
+  spendSorceryPoint: () => boolean;
+  spendCombatManeuverPoint: () => boolean;
+  // Notes functionality
+  notes: string;
+  updateNotes: (notes: string) => void;
 }
 
 export function CharacterDisplay({
@@ -117,6 +124,10 @@ export function CharacterDisplay({
   assassinationOffHand,
   canPerformFinesseAttacks,
   rest,
+  spendSorceryPoint,
+  spendCombatManeuverPoint,
+  notes,
+  updateNotes,
 }: CharacterDisplayProps) {
   const [showSaver, setShowSaver] = useState(false);
 
@@ -141,6 +152,13 @@ export function CharacterDisplay({
             max_combat_maneuvers={max_combat_maneuvers}
             max_finesse_points={max_finesse_points}
             max_sorcery_points={max_sorcery_points}
+            level={level}
+            str={str}
+            dex={dex}
+            int={int}
+            finesseThresholdLevel={char.getFinesseThresholdLevel()}
+            sorceryThresholdLevel={char.getSorceryThresholdLevel()}
+            doubleSorceryThresholdLevel={char.getDoubleSorceryThresholdLevel()}
             layout="vertical"
             size="md"
           />
@@ -157,33 +175,63 @@ export function CharacterDisplay({
             </div>
           ) : null}
           
-          <h3>
-            STR: {str} ({str >= 10 ? "+" : ""}{mod(str)}) 
-            {pending_level_up_points === 0 && (
-              <>
-                {" "}<Button onClick={() => onLevelUp("str")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
-                {" "}<Button onClick={() => onStartLevelUp()} variant="outline" size="sm">Split</Button>
-              </>
-            )}
-          </h3>
-          <h3>
-            DEX: {dex} ({dex >= 10 ? "+" : ""}{mod(dex)})
-            {pending_level_up_points === 0 && (
-              <>
-                {" "}<Button onClick={() => onLevelUp("dex")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
-                {" "}<Button onClick={() => onStartLevelUp()} variant="outline" size="sm">Split</Button>
-              </>
-            )}
-          </h3>
-          <h3>
-            INT: {int} ({int >= 10 ? "+" : ""}{mod(int)})
-            {pending_level_up_points === 0 && (
-              <>
-                {" "}<Button onClick={() => onLevelUp("int")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
-                {" "}<Button onClick={() => onStartLevelUp()} variant="outline" size="sm">Split</Button>
-              </>
-            )}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ margin: 0 }}>
+              STR: {str} ({str >= 10 ? "+" : ""}{mod(str)}) 
+              {pending_level_up_points === 0 && (
+                <>
+                  {" "}<Button onClick={() => onLevelUp("str")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
+                  {" "}<Button onClick={() => onStartLevelUp()} variant="outline" size="sm">Split</Button>
+                </>
+              )}
+            </h3>
+            <TooltipHelper 
+              content={createStatProgressionTooltip(
+                'str',
+                str,
+                originalStr,
+                char.level_up_choices.filter((choice: string) => choice === 'str')
+              )}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ margin: 0 }}>
+              DEX: {dex} ({dex >= 10 ? "+" : ""}{mod(dex)})
+              {pending_level_up_points === 0 && (
+                <>
+                  {" "}<Button onClick={() => onLevelUp("dex")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
+                  {" "}<Button onClick={() => onStartLevelUp()} variant="outline" size="sm">Split</Button>
+                </>
+              )}
+            </h3>
+            <TooltipHelper 
+              content={createStatProgressionTooltip(
+                'dex',
+                dex,
+                originalDex,
+                char.level_up_choices.filter((choice: string) => choice === 'dex')
+              )}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ margin: 0 }}>
+              INT: {int} ({int >= 10 ? "+" : ""}{mod(int)})
+              {pending_level_up_points === 0 && (
+                <>
+                  {" "}<Button onClick={() => onLevelUp("int")} size="sm" style={{ marginRight: '4px' }}>+2</Button>
+                  {" "}<Button onClick={() => onStartLevelUp()} variant="outline" size="sm">Split</Button>
+                </>
+              )}
+            </h3>
+            <TooltipHelper 
+              content={createStatProgressionTooltip(
+                'int',
+                int,
+                originalInt,
+                char.level_up_choices.filter((choice: string) => choice === 'int')
+              )}
+            />
+          </div>
           
           <div style={{ marginTop: '16px', marginBottom: '16px' }}>
             <StatOverrideControls
@@ -236,6 +284,8 @@ export function CharacterDisplay({
           finesse_points={finesse_points}
           max_finesse_points={max_finesse_points}
           onAbilityChange={() => char.triggerUpdate()}
+          spendSorceryPoint={spendSorceryPoint}
+          spendCombatManeuverPoint={spendCombatManeuverPoint}
         />
         <InventoryViewer inventoryManager={char.inventory} onInventoryChange={onInventoryChange} />
         <CombatActions 
@@ -247,8 +297,14 @@ export function CharacterDisplay({
           canPerformFinesseAttacks={canPerformFinesseAttacks}
           rest={rest}
           finesse_points={finesse_points}
+          spendSorceryPoint={spendSorceryPoint}
+          spendCombatManeuverPoint={spendCombatManeuverPoint}
+          sorcery_points={sorcery_points}
+          combat_maneuvers={combat_maneuvers}
+          max_sorcery_points={max_sorcery_points}
+          max_combat_maneuvers={max_combat_maneuvers}
         />
-        <NotesManager onNotesChange={() => char.triggerUpdate()} />
+        <NotesManager notes={notes} onNotesChange={updateNotes} />
         <DiceSettingsPanel onSettingsChange={() => char.triggerUpdate()} />
       </div>
     </>
