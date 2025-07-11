@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = function(knex) {
   return knex.schema.createTable('characters', (table) => {
     table.increments('id').primary();
     table.integer('user_id').references('id').inTable('users').onDelete('CASCADE');
@@ -10,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('high_stat', 3).notNullable().checkIn(['str', 'dex', 'int']);
     table.string('mid_stat', 3).notNullable().checkIn(['str', 'dex', 'int']);
     table.string('race', 50);
-    table.specificType('racial_bonuses', 'text[]');
+    table.jsonb('racial_bonuses'); // Array of racial bonus strings
     
     // Current derived stats (calculated from base + racial + equipment)
     table.integer('current_str').notNullable().defaultTo(16);
@@ -48,8 +46,8 @@ export async function up(knex: Knex): Promise<void> {
     table.index(['updated_at']);
     table.index(['last_accessed']);
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = function(knex) {
   return knex.schema.dropTable('characters');
-}
+};

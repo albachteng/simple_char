@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = async function(knex) {
   // Character-specific notes
   await knex.schema.createTable('character_notes', (table) => {
     table.increments('id').primary();
@@ -51,10 +49,10 @@ export async function up(knex: Knex): Promise<void> {
     
     table.primary(['user_id', 'universal_note_id']);
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = async function(knex) {
   await knex.schema.dropTable('user_universal_notes_seen');
   await knex.schema.dropTable('universal_notes');
   await knex.schema.dropTable('character_notes');
-}
+};

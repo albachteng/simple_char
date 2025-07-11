@@ -28,6 +28,20 @@ All notable changes to this project will be documented in this file.
 - **Equipment stat bonuses** - Items can provide stat modifications and maneuver bonuses
 - **Dice rolling system** - Toggle between random rolls and average values for consistency
 - **Dual-wielding combat** - Main-hand and off-hand weapon slots with different mechanics
+- **Express.js API Server** - Complete REST API with authentication and admin endpoints [2025-07-11]
+  - AuthController: register, login, logout, me, refreshToken, changePassword endpoints with JWT authentication
+  - AdminController: user management functions for admin users (getUserStats, searchUsers, promoteToAdmin, deactivateUser)
+  - Express routes with validation middleware and rate limiting
+  - Error handling middleware with structured responses and environment-aware error exposure
+  - Security middleware: Helmet, CORS, compression, rate limiting, cookie parsing
+  - Production-ready server setup with graceful shutdown and comprehensive logging
+- **PostgreSQL Database Integration** - Full database setup with AWS RDS connection [2025-07-11]
+  - 10 comprehensive migration files covering users, sessions, characters, progression, equipment, inventory, abilities, notes, logging, and game data
+  - Knex.js configuration optimized for AWS RDS with proper SSL settings and connection pooling
+  - Database connection diagnostic tools and automated fix scripts for troubleshooting
+  - Custom migration runner bypassing Knex CLI TypeScript issues
+  - Environment variable management with explicit dotenv loading and validation
+  - Converted TypeScript migrations to CommonJS (.cjs) for compatibility with ES modules project structure
 - **Individual combat actions** - Separate attack and damage roll buttons for each equipped weapon
 - **Combat calculation breakdowns** - Detailed roll summaries showing all modifiers (e.g., "10 (1d20) + 3 (STR modifier) + 1 (level)")
 - **CustomNumberInput component** - Replacement for problematic Mantine NumberInput with keyboard controls

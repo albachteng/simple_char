@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = async function(knex) {
   // Equipment templates (seeded data)
   await knex.schema.createTable('equipment_templates', (table) => {
     table.increments('id').primary();
@@ -21,8 +19,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string('base_damage_dice', 10); // "1d8", "2d6", etc.
     
     // Equipment slot restrictions
-    table.specificType('valid_slots', 'text[]'); // ['main-hand', 'off-hand'] for weapons
-    table.specificType('conflicts_with', 'text[]'); // Equipment slots that conflict
+    table.jsonb('valid_slots'); // ['main-hand', 'off-hand'] for weapons
+    table.jsonb('conflicts_with'); // Equipment slots that conflict
     
     // Metadata
     table.boolean('is_active').defaultTo(true);
@@ -90,12 +88,12 @@ export async function up(knex: Knex): Promise<void> {
     table.index(['equipment_template_id']);
     table.index(['resource_type']);
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = async function(knex) {
   await knex.schema.dropTable('equipment_resource_bonuses');
   await knex.schema.dropTable('equipment_stat_modifiers');
   await knex.schema.dropTable('equipment_template_abilities');
   await knex.schema.dropTable('equipment_abilities');
   await knex.schema.dropTable('equipment_templates');
-}
+};

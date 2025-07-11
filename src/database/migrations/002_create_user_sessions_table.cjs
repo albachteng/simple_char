@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = function(knex) {
   return knex.schema.createTable('user_sessions', (table) => {
     table.increments('id').primary();
     table.integer('user_id').references('id').inTable('users').onDelete('CASCADE');
@@ -9,15 +7,15 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('last_accessed').defaultTo(knex.fn.now());
     table.text('user_agent');
-    table.inet('ip_address');
+    table.string('ip_address', 45); // Supports both IPv4 and IPv6
 
     // Indexes
     table.index(['session_token']);
     table.index(['user_id']);
     table.index(['expires_at']);
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = function(knex) {
   return knex.schema.dropTable('user_sessions');
-}
+};

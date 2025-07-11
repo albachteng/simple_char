@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = async function(knex) {
   // Application logs (global)
   await knex.schema.createTable('application_logs', (table) => {
     table.increments('id').primary();
@@ -12,7 +10,7 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('user_id').references('id').inTable('users').onDelete('SET NULL');
     table.integer('character_id').references('id').inTable('characters').onDelete('SET NULL');
     table.integer('session_id').references('id').inTable('user_sessions').onDelete('SET NULL');
-    table.inet('ip_address');
+    table.string('ip_address', 45); // Supports both IPv4 and IPv6
     table.text('user_agent');
 
     // Indexes
@@ -38,9 +36,9 @@ export async function up(knex: Knex): Promise<void> {
     table.index(['level']);
     table.index(['category']);
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = async function(knex) {
   await knex.schema.dropTable('character_logs');
   await knex.schema.dropTable('application_logs');
-}
+};

@@ -28,16 +28,16 @@ class DatabaseConnection {
         ssl: config.ssl ? { rejectUnauthorized: false } : false,
       },
       pool: {
-        min: 2,
-        max: config.maxConnections || 20,
-        acquireTimeoutMillis: config.connectionTimeoutMillis || 30000,
+        min: 1,
+        max: config.maxConnections || 10,
+        acquireTimeoutMillis: config.connectionTimeoutMillis || 60000,
         createTimeoutMillis: 30000,
         destroyTimeoutMillis: 5000,
         idleTimeoutMillis: 30000,
         reapIntervalMillis: 1000,
         createRetryIntervalMillis: 200,
       },
-      acquireConnectionTimeout: config.connectionTimeoutMillis || 30000,
+      acquireConnectionTimeout: config.connectionTimeoutMillis || 60000,
     });
 
     this.setupEventHandlers();
@@ -53,7 +53,9 @@ class DatabaseConnection {
           database: process.env.DATABASE_NAME || 'simple_char',
           user: process.env.DATABASE_USER || 'simple_char_user',
           password: process.env.DATABASE_PASSWORD || '',
-          ssl: process.env.NODE_ENV === 'production',
+          ssl: process.env.DATABASE_SSL === 'true' || process.env.NODE_ENV === 'production',
+          maxConnections: parseInt(process.env.DATABASE_MAX_CONNECTIONS || '10'),
+          connectionTimeoutMillis: parseInt(process.env.DATABASE_TIMEOUT || '60000'),
         };
         
         if (!envConfig.password) {

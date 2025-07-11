@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = async function(knex) {
   // Race definitions (seeded data)
   await knex.schema.createTable('races', (table) => {
     table.increments('id').primary();
@@ -40,10 +38,10 @@ export async function up(knex: Knex): Promise<void> {
     // Indexes
     table.index(['user_id']);
   });
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = async function(knex) {
   await knex.schema.dropTable('user_preferences');
   await knex.schema.dropTable('application_settings');
   await knex.schema.dropTable('races');
-}
+};
