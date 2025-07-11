@@ -26,6 +26,8 @@
     "db:fix": "node scripts/fix-knex-migration.cjs",
     "db:check": "node scripts/check-database-data.cjs",
     "db:debug-migrations": "node scripts/debug-migrations.cjs",
+    "db:view": "node scripts/view-table.cjs",
+    "db:query": "node scripts/query.cjs",
     "db:debug-connection": "node debug-connection.cjs",
     "db:migrate": "node migrate.cjs",
     "db:migrate:shell": "./migrate.sh",

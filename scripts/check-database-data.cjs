@@ -65,13 +65,19 @@ async function checkDatabaseData() {
         console.log(`  ${status} ${tableName}: ${count} rows`);
         
         // Show sample data for non-empty tables
-        if (count > 0 && count <= 5) {
-          const sampleData = await db(tableName).limit(3);
+        if (count > 0) {
+          const sampleData = await db(tableName).limit(5);
           console.log(`    Sample data:`);
           sampleData.forEach((row, index) => {
-            const keys = Object.keys(row).slice(0, 3); // Show first 3 columns
-            const preview = keys.map(key => `${key}=${row[key]}`).join(', ');
-            console.log(`      ${index + 1}. ${preview}...`);
+            const keys = Object.keys(row).slice(0, 4); // Show first 4 columns
+            const preview = keys.map(key => {
+              let value = row[key];
+              if (typeof value === 'string' && value.length > 20) {
+                value = value.substring(0, 20) + '...';
+              }
+              return `${key}=${value}`;
+            }).join(', ');
+            console.log(`      ${index + 1}. ${preview}`);
           });
         }
       } catch (error) {

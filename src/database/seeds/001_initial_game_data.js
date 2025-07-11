@@ -1,6 +1,7 @@
-import { Knex } from 'knex';
+import pkg from 'knex';
+const { Knex } = pkg;
 
-export async function seed(knex: Knex): Promise<void> {
+export async function seed(knex) {
   // Clear existing data
   await knex('races').del();
   await knex('equipment_templates').del();

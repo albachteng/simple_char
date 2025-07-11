@@ -64,82 +64,122 @@ exports.seed = async function(knex) {
     {
       name: 'Greatsword',
       type: 'weapon',
-      category: 'two-hand',
+      subtype: 'two-hand',
       description: generateWeaponDescription('two-hand'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['two-hand']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand']),
-      conflicts_with: JSON.stringify(['off-hand', 'shield'])
+      conflicts_with: JSON.stringify(['off-hand', 'shield']),
+      is_active: true
     },
     {
       name: 'Longsword',
       type: 'weapon',
-      category: 'one-hand',
+      subtype: 'one-hand',
       description: generateWeaponDescription('one-hand'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['one-hand']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand', 'off-hand']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Rapier',
       type: 'weapon',
-      category: 'finesse',
+      subtype: 'finesse',
       description: generateWeaponDescription('finesse'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['finesse']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand', 'off-hand']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Longbow',
       type: 'weapon',
-      category: 'ranged',
+      subtype: 'ranged',
       description: generateWeaponDescription('ranged'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['ranged']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand']),
-      conflicts_with: JSON.stringify(['off-hand', 'shield'])
+      conflicts_with: JSON.stringify(['off-hand', 'shield']),
+      is_active: true
     },
     {
       name: 'Staff',
       type: 'weapon',
-      category: 'staff',
+      subtype: 'staff',
       description: generateWeaponDescription('staff'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['staff']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand']),
-      conflicts_with: JSON.stringify(['off-hand', 'shield'])
+      conflicts_with: JSON.stringify(['off-hand', 'shield']),
+      is_active: true
     },
     {
       name: 'Dagger',
       type: 'weapon',
-      category: 'finesse',
+      subtype: 'finesse',
       description: generateWeaponDescription('finesse'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['finesse']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand', 'off-hand']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Warhammer',
       type: 'weapon',
-      category: 'one-hand',
+      subtype: 'one-hand',
       description: generateWeaponDescription('one-hand'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['one-hand']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand', 'off-hand']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Crossbow',
       type: 'weapon',
-      category: 'ranged',
+      subtype: 'ranged',
       description: generateWeaponDescription('ranged'),
+      base_ac_bonus: 0,
       base_attack_bonus: 0,
       base_damage_dice: `1d${WEAPON_DIE['ranged']}`,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['main-hand']),
-      conflicts_with: JSON.stringify(['off-hand', 'shield'])
+      conflicts_with: JSON.stringify(['off-hand', 'shield']),
+      is_active: true
     }
   ];
 
@@ -148,56 +188,92 @@ exports.seed = async function(knex) {
     {
       name: 'Plate Armor',
       type: 'armor',
-      category: 'heavy',
+      subtype: 'heavy',
       description: generateArmorDescription('heavy'),
       base_ac_bonus: ARMOR_MODS['heavy'],
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 16,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['armor']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Chain Mail',
       type: 'armor',
-      category: 'medium',
+      subtype: 'medium',
       description: generateArmorDescription('medium'),
       base_ac_bonus: ARMOR_MODS['medium'],
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 14,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['armor']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Leather Armor',
       type: 'armor',
-      category: 'light',
+      subtype: 'light',
       description: generateArmorDescription('light'),
       base_ac_bonus: ARMOR_MODS['light'],
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 12,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['armor']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Studded Leather',
       type: 'armor',
-      category: 'light',
+      subtype: 'light',
       description: generateArmorDescription('light'),
       base_ac_bonus: ARMOR_MODS['light'],
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 12,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['armor']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Scale Mail',
       type: 'armor',
-      category: 'medium',
+      subtype: 'medium',
       description: generateArmorDescription('medium'),
       base_ac_bonus: ARMOR_MODS['medium'],
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 14,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['armor']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     },
     {
       name: 'Splint Armor',
       type: 'armor',
-      category: 'heavy',
+      subtype: 'heavy',
       description: generateArmorDescription('heavy'),
       base_ac_bonus: ARMOR_MODS['heavy'],
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 16,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['armor']),
-      conflicts_with: JSON.stringify([])
+      conflicts_with: JSON.stringify([]),
+      is_active: true
     }
   ];
 
@@ -206,29 +282,47 @@ exports.seed = async function(knex) {
     {
       name: 'Wooden Shield',
       type: 'shield',
-      category: 'light',
+      subtype: 'light',
       description: `A shield that provides +${SHIELD_AC} AC when equipped`,
       base_ac_bonus: SHIELD_AC,
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['shield']),
-      conflicts_with: JSON.stringify(['off-hand'])
+      conflicts_with: JSON.stringify(['off-hand']),
+      is_active: true
     },
     {
       name: 'Metal Shield',
       type: 'shield',
-      category: 'medium',
+      subtype: 'medium',
       description: `A shield that provides +${SHIELD_AC} AC when equipped`,
       base_ac_bonus: SHIELD_AC,
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['shield']),
-      conflicts_with: JSON.stringify(['off-hand'])
+      conflicts_with: JSON.stringify(['off-hand']),
+      is_active: true
     },
     {
       name: 'Tower Shield',
       type: 'shield',
-      category: 'heavy',
+      subtype: 'heavy',
       description: `A shield that provides +${SHIELD_AC} AC when equipped`,
       base_ac_bonus: SHIELD_AC,
+      base_attack_bonus: 0,
+      base_damage_dice: null,
+      str_requirement: 0,
+      dex_requirement: 0,
+      int_requirement: 0,
       valid_slots: JSON.stringify(['shield']),
-      conflicts_with: JSON.stringify(['off-hand'])
+      conflicts_with: JSON.stringify(['off-hand']),
+      is_active: true
     }
   ];
 
