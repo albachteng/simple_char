@@ -90,7 +90,7 @@ class DatabaseConnection {
     } catch (error) {
       logger.error('Database query failed', {
         query: sql.substring(0, 100),
-        error: error.message,
+        error: (error as Error).message,
         bindings
       });
       throw error;
@@ -107,7 +107,7 @@ class DatabaseConnection {
       logger.info('Database connection test successful');
       return true;
     } catch (error) {
-      logger.error('Database connection test failed', { error: error.message });
+      logger.error('Database connection test failed', { error: (error as Error).message });
       return false;
     }
   }

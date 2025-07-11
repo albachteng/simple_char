@@ -1,18 +1,23 @@
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import helmet from 'helmet';
-import compression from 'compression';
-import path from 'path';
-import { rateLimit } from 'express-rate-limit';
-import apiRoutes from './routes';
-import { errorHandler, notFoundHandler, timeoutHandler } from './middleware/errorHandler';
-// import { rateLimitValidation } from './middleware/validation'; // Not used yet
-import { logger } from './logger';
+/**
+ * Express application configuration with security middleware, CORS, rate limiting, and routing
+ * Sets up the main Express app with all middleware, security configurations, and API routes
+ */
+
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const compression = require('compression');
+const path = require('path');
+const { rateLimit } = require('express-rate-limit');
+const apiRoutes = require('./routes/index.cjs');
+const { errorHandler, notFoundHandler, timeoutHandler } = require('./middleware/errorHandler.cjs');
+// const { rateLimitValidation } = require('./middleware/validation'); // Not used yet
+const { logger } = require('./logger.cjs');
 
 const app = express();
 
-// Security middleware
+// Security middleware configuration
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -44,10 +49,13 @@ app.use(cookieParser());
 // Compression middleware
 app.use(compression());
 
-// Request timeout middleware
-app.use(timeoutHandler(30000)); // 30 second timeout
+// Request timeout middleware (30 second timeout)
+app.use(timeoutHandler(30000));
 
-// Global rate limiting
+/**
+ * Rate limit configuration for general API requests
+ * @type {Object}
+ */
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // Limit each IP to 1000 requests per windowMs
@@ -61,7 +69,10 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// Strict rate limiting for auth endpoints
+/**
+ * Stricter rate limit configuration for authentication endpoints
+ * @type {Object}
+ */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 auth requests per windowMs
@@ -78,7 +89,10 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// Request logging middleware
+/**
+ * Request logging middleware
+ * Logs request details including method, path, duration, and user info
+ */
 app.use((req, res, next) => {
   const start = Date.now();
   
@@ -91,14 +105,17 @@ app.use((req, res, next) => {
       duration,
       ip: req.ip,
       userAgent: req.get('User-Agent'),
-      userId: (req as any).user?.userId
+      userId: req.user?.userId
     });
   });
 
   next();
 });
 
-// Request ID middleware
+/**
+ * Request ID middleware
+ * Generates unique request IDs for tracking and debugging
+ */
 app.use((req, res, next) => {
   const requestId = req.get('X-Request-ID') || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   req.headers['x-request-id'] = requestId;
@@ -109,7 +126,11 @@ app.use((req, res, next) => {
 // API routes
 app.use('/api', apiRoutes);
 
-// Health check endpoint (outside of API routes)
+/**
+ * Health check endpoint - provides server status and basic metrics
+ * @route GET /health
+ * @returns {Object} Server health information including uptime, memory usage, and version
+ */
 app.get('/health', (_req, res) => {
   res.status(200).json({
     success: true,
@@ -126,7 +147,10 @@ app.get('/health', (_req, res) => {
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('dist'));
   
-  // Catch all handler for SPA
+  /**
+   * Catch-all handler for SPA routing in production
+   * Serves index.html for non-API routes to support client-side routing
+   */
   app.get('*', (req, res) => {
     // Don't serve index.html for API routes
     if (req.path.startsWith('/api/')) {
@@ -137,10 +161,10 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// 404 handler for non-API routes
+// 404 handler for API routes
 app.use('/api/*', notFoundHandler);
 
 // Global error handler (must be last)
 app.use(errorHandler);
 
-export default app;
+module.exports = app;

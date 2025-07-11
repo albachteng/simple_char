@@ -1,20 +1,81 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { UserRepository } from '../repositories/UserRepository';
-import { User } from '../types/database';
-import { CreateUserData, LoginCredentials, AuthResponse, AuthToken, ValidationError } from '../types/auth';
-import { logger } from '../logger';
+/**
+ * Authentication service handling user registration, login, and token management
+ * Provides secure user authentication with bcrypt hashing and JWT tokens
+ */
 
-export class AuthService {
-  private userRepository: UserRepository;
-  private jwtSecret: string;
-  private saltRounds: number;
-  private tokenExpiry: string;
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { UserRepository } = require('../repositories/UserRepository.cjs');
+const { logger } = require('../logger.cjs');
 
+/**
+ * User data structure from database
+ * @typedef {Object} User
+ * @property {number} id - User ID
+ * @property {string} username - Username
+ * @property {string} email - Email address
+ * @property {Date} created_at - Creation timestamp
+ * @property {Date} updated_at - Last update timestamp
+ * @property {Date} [last_login] - Last login timestamp
+ * @property {boolean} is_active - Whether user account is active
+ * @property {boolean} is_admin - Whether user has admin privileges
+ */
+
+/**
+ * User creation data structure
+ * @typedef {Object} CreateUserData
+ * @property {string} username - Username
+ * @property {string} email - Email address
+ * @property {string} password - Plain text password
+ */
+
+/**
+ * Login credentials structure
+ * @typedef {Object} LoginCredentials
+ * @property {string} emailOrUsername - Email address or username
+ * @property {string} password - Plain text password
+ */
+
+/**
+ * Authentication response structure
+ * @typedef {Object} AuthResponse
+ * @property {User} user - User object (sanitized)
+ * @property {string} token - JWT authentication token
+ */
+
+/**
+ * JWT token payload structure
+ * @typedef {Object} AuthToken
+ * @property {number} userId - User ID
+ * @property {string} username - Username
+ * @property {boolean} isAdmin - Whether user is admin
+ * @property {number} iat - Issued at timestamp
+ * @property {number} exp - Expiration timestamp
+ */
+
+/**
+ * Validation error structure
+ * @typedef {Object} ValidationError
+ * @property {string} field - Field name with error
+ * @property {string} message - Error message
+ */
+
+/**
+ * Authentication service class
+ * Handles user registration, login, password management, and token operations
+ */
+class AuthService {
   constructor() {
+    /** @type {UserRepository} User repository instance */
     this.userRepository = new UserRepository();
+    
+    /** @type {string} JWT secret key */
     this.jwtSecret = process.env.JWT_SECRET || 'default-secret-change-me-in-production';
+    
+    /** @type {number} Bcrypt salt rounds */
     this.saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12');
+    
+    /** @type {string} JWT token expiry time */
     this.tokenExpiry = process.env.JWT_EXPIRY || '7d';
 
     if (this.jwtSecret === 'default-secret-change-me-in-production') {
@@ -22,11 +83,17 @@ export class AuthService {
     }
   }
 
-  async register(userData: CreateUserData): Promise<AuthResponse> {
+  /**
+   * Register new user account
+   * @param {CreateUserData} userData - User registration data
+   * @returns {Promise<AuthResponse>} User and authentication token
+   * @throws {Error} If validation fails or user already exists
+   */
+  async register(userData) {
     // Validate input data
     const validationErrors = this.validateRegistrationData(userData);
     if (validationErrors.length > 0) {
-      const error = new Error('Validation failed') as any;
+      const error = new Error('Validation failed');
       error.validationErrors = validationErrors;
       throw error;
     }
@@ -73,13 +140,19 @@ export class AuthService {
       logger.error('User registration failed', { 
         username: userData.username,
         email: userData.email,
-        error: (error as Error).message 
+        error: error.message 
       });
       throw error;
     }
   }
 
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+  /**
+   * Authenticate user login
+   * @param {LoginCredentials} credentials - Login credentials
+   * @returns {Promise<AuthResponse>} User and authentication token
+   * @throws {Error} If credentials are invalid or user not found
+   */
+  async login(credentials) {
     // Validate input
     if (!credentials.emailOrUsername || !credentials.password) {
       throw new Error('Email/username and password are required');
@@ -123,9 +196,14 @@ export class AuthService {
     };
   }
 
-  async validateToken(token: string): Promise<User | null> {
+  /**
+   * Validate JWT token and return user
+   * @param {string} token - JWT token
+   * @returns {Promise<User|null>} User object or null if invalid
+   */
+  async validateToken(token) {
     try {
-      const decoded = jwt.verify(token, this.jwtSecret) as AuthToken;
+      const decoded = jwt.verify(token, this.jwtSecret);
       
       // Find user to ensure they still exist and are active
       const user = await this.userRepository.findById(decoded.userId);
@@ -137,20 +215,25 @@ export class AuthService {
       return this.sanitizeUser(user);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        logger.debug('Token expired', { error: (error as Error).message });
+        logger.debug('Token expired', { error: error.message });
       } else if (error.name === 'JsonWebTokenError') {
-        logger.error('Invalid token provided', { error: (error as Error).message });
+        logger.error('Invalid token provided', { error: error.message });
       } else {
-        logger.error('Token validation failed', { error: (error as Error).message });
+        logger.error('Token validation failed', { error: error.message });
       }
       return null;
     }
   }
 
-  async refreshToken(token: string): Promise<string | null> {
+  /**
+   * Refresh expired JWT token
+   * @param {string} token - Expired JWT token
+   * @returns {Promise<string|null>} New token or null if invalid
+   */
+  async refreshToken(token) {
     try {
       // Verify the token (even if expired, we can still decode it)
-      const decoded = jwt.decode(token) as AuthToken;
+      const decoded = jwt.decode(token);
       
       if (!decoded || !decoded.userId) {
         return null;
@@ -169,12 +252,20 @@ export class AuthService {
       
       return newToken;
     } catch (error) {
-      logger.error('Token refresh failed', { error: (error as Error).message });
+      logger.error('Token refresh failed', { error: error.message });
       return null;
     }
   }
 
-  async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
+  /**
+   * Change user password
+   * @param {number} userId - User ID
+   * @param {string} currentPassword - Current password
+   * @param {string} newPassword - New password
+   * @returns {Promise<void>}
+   * @throws {Error} If current password is incorrect or validation fails
+   */
+  async changePassword(userId, currentPassword, newPassword) {
     // Find user
     const user = await this.userRepository.findById(userId);
     if (!user) {
@@ -190,7 +281,7 @@ export class AuthService {
     // Validate new password
     const passwordValidation = this.validatePassword(newPassword);
     if (passwordValidation.length > 0) {
-      const error = new Error('Password validation failed') as any;
+      const error = new Error('Password validation failed');
       error.validationErrors = passwordValidation;
       throw error;
     }
@@ -205,8 +296,14 @@ export class AuthService {
     logger.info('User password changed', { userId });
   }
 
-  private generateToken(user: User): string {
-    const payload: Omit<AuthToken, 'iat' | 'exp'> = {
+  /**
+   * Generate JWT token for user
+   * @param {User} user - User object
+   * @returns {string} JWT token
+   * @private
+   */
+  generateToken(user) {
+    const payload = {
       userId: user.id,
       username: user.username,
       isAdmin: user.is_admin
@@ -219,14 +316,26 @@ export class AuthService {
     });
   }
 
-  private sanitizeUser(user: User): User {
+  /**
+   * Remove sensitive fields from user object
+   * @param {*} user - User object with sensitive fields
+   * @returns {User} Sanitized user object
+   * @private
+   */
+  sanitizeUser(user) {
     // Remove sensitive fields
-    const { password_hash, salt, ...sanitized } = user as any;
+    const { password_hash, salt, ...sanitized } = user;
     return sanitized;
   }
 
-  private validateRegistrationData(userData: CreateUserData): ValidationError[] {
-    const errors: ValidationError[] = [];
+  /**
+   * Validate user registration data
+   * @param {CreateUserData} userData - User registration data
+   * @returns {ValidationError[]} Array of validation errors
+   * @private
+   */
+  validateRegistrationData(userData) {
+    const errors = [];
 
     // Username validation
     if (!userData.username || userData.username.trim().length === 0) {
@@ -255,8 +364,14 @@ export class AuthService {
     return errors;
   }
 
-  private validatePassword(password: string): ValidationError[] {
-    const errors: ValidationError[] = [];
+  /**
+   * Validate password strength and format
+   * @param {string} password - Password to validate
+   * @returns {ValidationError[]} Array of validation errors
+   * @private
+   */
+  validatePassword(password) {
+    const errors = [];
 
     if (!password) {
       errors.push({ field: 'password', message: 'Password is required' });
@@ -296,8 +411,13 @@ export class AuthService {
     return errors;
   }
 
-  // Admin functions
-  async promoteToAdmin(userId: number, promotedBy: number): Promise<void> {
+  /**
+   * Promote user to admin (admin function)
+   * @param {number} userId - User ID to promote
+   * @param {number} promotedBy - ID of admin promoting the user
+   * @returns {Promise<void>}
+   */
+  async promoteToAdmin(userId, promotedBy) {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error('User not found');
@@ -313,7 +433,13 @@ export class AuthService {
     logger.info('User promoted to admin', { userId, promotedBy });
   }
 
-  async getUserStats(): Promise<any> {
+  /**
+   * Get user statistics (admin function)
+   * @returns {Promise<*>} User statistics
+   */
+  async getUserStats() {
     return await this.userRepository.getUserStats();
   }
 }
+
+module.exports = { AuthService };

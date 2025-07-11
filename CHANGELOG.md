@@ -42,6 +42,13 @@ All notable changes to this project will be documented in this file.
   - Custom migration runner bypassing Knex CLI TypeScript issues
   - Environment variable management with explicit dotenv loading and validation
   - Converted TypeScript migrations to CommonJS (.cjs) for compatibility with ES modules project structure
+- **Database Seeding System** - Comprehensive seed data for game content [2025-07-11]
+  - Equipment templates seed: 17 items (8 weapons, 6 armor pieces, 3 shields) with proper damage dice, AC bonuses, and slot restrictions
+  - Ability templates seed: 53 abilities (17 metamagic, 19 spellwords, 17 combat maneuvers) with descriptions and resource requirements
+  - Character races seed: 6 races (Elf, Gnome, Human, Dwarf, Dragonborn, Halfling) with stat bonuses and racial abilities
+  - Database viewing tools: CLI scripts for table inspection, custom queries, and data exploration
+  - Fixed PostgreSQL compatibility issues (inet types, array types, constraint validation)
+  - All seed files use .cjs format for ES modules compatibility
 - **Individual combat actions** - Separate attack and damage roll buttons for each equipped weapon
 - **Combat calculation breakdowns** - Detailed roll summaries showing all modifiers (e.g., "10 (1d20) + 3 (STR modifier) + 1 (level)")
 - **CustomNumberInput component** - Replacement for problematic Mantine NumberInput with keyboard controls

@@ -15,7 +15,7 @@ export class UserRepository {
       
       return user || null;
     } catch (error) {
-      logger.error('Failed to find user by ID', { id, error: error.message });
+      logger.error('Failed to find user by ID', { id, error: (error as Error).message });
       throw error;
     }
   }
@@ -29,7 +29,7 @@ export class UserRepository {
       
       return user || null;
     } catch (error) {
-      logger.error('Failed to find user by email', { email, error: error.message });
+      logger.error('Failed to find user by email', { email, error: (error as Error).message });
       throw error;
     }
   }
@@ -43,7 +43,7 @@ export class UserRepository {
       
       return user || null;
     } catch (error) {
-      logger.error('Failed to find user by username', { username, error: error.message });
+      logger.error('Failed to find user by username', { username, error: (error as Error).message });
       throw error;
     }
   }
@@ -64,7 +64,7 @@ export class UserRepository {
     } catch (error) {
       logger.error('Failed to find user by email or username', { 
         emailOrUsername, 
-        error: error.message 
+        error: (error as Error).message 
       });
       throw error;
     }
@@ -94,11 +94,11 @@ export class UserRepository {
       return user;
     } catch (error) {
       // Handle unique constraint violations
-      if (error.code === '23505') {
-        if (error.constraint?.includes('username')) {
+      if ((error as any).code === '23505') {
+        if ((error as any).constraint?.includes('username')) {
           throw new Error('Username already exists');
         }
-        if (error.constraint?.includes('email')) {
+        if ((error as any).constraint?.includes('email')) {
           throw new Error('Email already exists');
         }
       }
@@ -106,7 +106,7 @@ export class UserRepository {
       logger.error('Failed to create user', { 
         username: userData.username,
         email: userData.email,
-        error: error.message 
+        error: (error as Error).message 
       });
       throw error;
     }
@@ -123,7 +123,7 @@ export class UserRepository {
 
       logger.debug('Updated user last login', { userId });
     } catch (error) {
-      logger.error('Failed to update user last login', { userId, error: error.message });
+      logger.error('Failed to update user last login', { userId, error: (error as Error).message });
       throw error;
     }
   }
@@ -140,7 +140,7 @@ export class UserRepository {
 
       logger.info('User password updated', { userId });
     } catch (error) {
-      logger.error('Failed to update user password', { userId, error: error.message });
+      logger.error('Failed to update user password', { userId, error: (error as Error).message });
       throw error;
     }
   }
@@ -156,7 +156,7 @@ export class UserRepository {
 
       logger.info('User deactivated', { userId });
     } catch (error) {
-      logger.error('Failed to deactivate user', { userId, error: error.message });
+      logger.error('Failed to deactivate user', { userId, error: (error as Error).message });
       throw error;
     }
   }
@@ -172,7 +172,7 @@ export class UserRepository {
 
       logger.info('User reactivated', { userId });
     } catch (error) {
-      logger.error('Failed to reactivate user', { userId, error: error.message });
+      logger.error('Failed to reactivate user', { userId, error: (error as Error).message });
       throw error;
     }
   }
@@ -199,7 +199,7 @@ export class UserRepository {
         recentRegistrations: parseInt(stats.recent_registrations)
       };
     } catch (error) {
-      logger.error('Failed to get user stats', { error: error.message });
+      logger.error('Failed to get user stats', { error: (error as Error).message });
       throw error;
     }
   }
@@ -218,7 +218,7 @@ export class UserRepository {
 
       return users;
     } catch (error) {
-      logger.error('Failed to search users', { query, error: error.message });
+      logger.error('Failed to search users', { query, error: (error as Error).message });
       throw error;
     }
   }

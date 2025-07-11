@@ -1,24 +1,41 @@
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '../logger';
+/**
+ * Request validation middleware for Express routes
+ * Provides comprehensive field validation with type checking, length limits, and custom rules
+ */
 
-export interface ValidationRule {
-  field: string;
-  required?: boolean;
-  type?: 'string' | 'number' | 'email' | 'boolean';
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-  pattern?: RegExp;
-  custom?: (value: any) => boolean | string;
-}
+const { logger } = require('../logger.cjs');
+
+/**
+ * Validation rule configuration
+ * @typedef {Object} ValidationRule
+ * @property {string} field - Field name to validate
+ * @property {boolean} [required] - Whether field is required
+ * @property {'string'|'number'|'email'|'boolean'} [type] - Expected field type
+ * @property {number} [minLength] - Minimum string length
+ * @property {number} [maxLength] - Maximum string length
+ * @property {number} [min] - Minimum numeric value
+ * @property {number} [max] - Maximum numeric value
+ * @property {RegExp} [pattern] - Regular expression pattern for strings
+ * @property {function(any): boolean|string} [custom] - Custom validation function
+ */
+
+/**
+ * Validation error structure
+ * @typedef {Object} ValidationError
+ * @property {string} field - Field name with error
+ * @property {string} message - Error message
+ */
 
 /**
  * Request validation middleware factory
+ * Creates middleware that validates request data against specified rules
+ * @param {ValidationRule[]} rules - Array of validation rules
+ * @returns {Function} Express middleware function
  */
-export const validateRequest = (rules: ValidationRule[]) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    const errors: { field: string; message: string }[] = [];
+const validateRequest = (rules) => {
+  return (req, res, next) => {
+    /** @type {ValidationError[]} */
+    const errors = [];
     const data = { ...req.body, ...req.params, ...req.query };
 
     for (const rule of rules) {
@@ -49,10 +66,15 @@ export const validateRequest = (rules: ValidationRule[]) => {
 };
 
 /**
- * Validate a single field against a rule
+ * Validate a single field against a validation rule
+ * @param {string} fieldName - Name of the field being validated
+ * @param {*} value - Value to validate
+ * @param {ValidationRule} rule - Validation rule to apply
+ * @returns {ValidationError[]} Array of validation errors
  */
-function validateField(fieldName: string, value: any, rule: ValidationRule): { field: string; message: string }[] {
-  const errors: { field: string; message: string }[] = [];
+function validateField(fieldName, value, rule) {
+  /** @type {ValidationError[]} */
+  const errors = [];
 
   // Required validation
   if (rule.required && (value === undefined || value === null || value === '')) {
@@ -133,9 +155,13 @@ function validateField(fieldName: string, value: any, rule: ValidationRule): { f
 }
 
 /**
- * Validate field type
+ * Validate field type against expected type
+ * @param {string} fieldName - Name of the field
+ * @param {*} value - Value to validate
+ * @param {'string'|'number'|'email'|'boolean'} expectedType - Expected type
+ * @returns {ValidationError|null} Type validation error or null if valid
  */
-function validateType(fieldName: string, value: any, expectedType: ValidationRule['type']): { field: string; message: string } | null {
+function validateType(fieldName, value, expectedType) {
   switch (expectedType) {
     case 'string':
       if (typeof value !== 'string') {
@@ -179,15 +205,15 @@ function validateType(fieldName: string, value: any, expectedType: ValidationRul
 }
 
 /**
- * Common validation rules
+ * Pre-defined validation rule sets for common use cases
  */
-export const validationRules = {
-  // User registration
+const validationRules = {
+  // User registration validation
   userRegistration: [
     {
       field: 'username',
       required: true,
-      type: 'string' as const,
+      type: 'string',
       minLength: 3,
       maxLength: 50,
       pattern: /^[a-zA-Z0-9_-]+$/,
@@ -195,16 +221,16 @@ export const validationRules = {
     {
       field: 'email',
       required: true,
-      type: 'email' as const,
+      type: 'email',
       maxLength: 255,
     },
     {
       field: 'password',
       required: true,
-      type: 'string' as const,
+      type: 'string',
       minLength: 8,
       maxLength: 128,
-      custom: (value: string) => {
+      custom: (value) => {
         if (!/(?=.*[a-z])/.test(value)) {
           return 'Password must contain at least one lowercase letter';
         }
@@ -222,38 +248,38 @@ export const validationRules = {
     },
   ],
 
-  // User login
+  // User login validation
   userLogin: [
     {
       field: 'emailOrUsername',
       required: true,
-      type: 'string' as const,
+      type: 'string',
       minLength: 1,
       maxLength: 255,
     },
     {
       field: 'password',
       required: true,
-      type: 'string' as const,
+      type: 'string',
       minLength: 1,
     },
   ],
 
-  // Password change
+  // Password change validation
   passwordChange: [
     {
       field: 'currentPassword',
       required: true,
-      type: 'string' as const,
+      type: 'string',
       minLength: 1,
     },
     {
       field: 'newPassword',
       required: true,
-      type: 'string' as const,
+      type: 'string',
       minLength: 8,
       maxLength: 128,
-      custom: (value: string) => {
+      custom: (value) => {
         if (!/(?=.*[a-z])/.test(value)) {
           return 'New password must contain at least one lowercase letter';
         }
@@ -271,48 +297,53 @@ export const validationRules = {
     },
   ],
 
-  // User search (admin)
+  // User search validation (admin)
   userSearch: [
     {
       field: 'q',
       required: true,
-      type: 'string' as const,
+      type: 'string',
       minLength: 1,
       maxLength: 100,
     },
     {
       field: 'limit',
       required: false,
-      type: 'number' as const,
+      type: 'number',
       min: 1,
       max: 100,
     },
     {
       field: 'offset',
       required: false,
-      type: 'number' as const,
+      type: 'number',
       min: 0,
     },
   ],
 
-  // User ID parameter
+  // User ID parameter validation
   userId: [
     {
       field: 'userId',
       required: true,
-      type: 'number' as const,
+      type: 'number',
       min: 1,
     },
   ],
 };
 
 /**
- * Rate limiting validation
+ * Rate limiting validation middleware factory
+ * Creates in-memory rate limiting based on IP address
+ * @param {number} maxRequests - Maximum requests allowed
+ * @param {number} windowMs - Time window in milliseconds
+ * @returns {Function} Express middleware function
  */
-export const rateLimitValidation = (maxRequests: number, windowMs: number) => {
-  const requests = new Map<string, { count: number; resetTime: number }>();
+const rateLimitValidation = (maxRequests, windowMs) => {
+  /** @type {Map<string, {count: number, resetTime: number}>} */
+  const requests = new Map();
 
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req, res, next) => {
     const identifier = req.ip || 'unknown';
     const now = Date.now();
     const userRequests = requests.get(identifier);
@@ -346,4 +377,10 @@ export const rateLimitValidation = (maxRequests: number, windowMs: number) => {
     userRequests.count++;
     next();
   };
+};
+
+module.exports = {
+  validateRequest,
+  validationRules,
+  rateLimitValidation
 };

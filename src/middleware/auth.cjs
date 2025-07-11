@@ -1,29 +1,39 @@
-import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/AuthService';
-import { SessionData } from '../types/auth';
-import { logger } from '../logger';
+/**
+ * Authentication middleware for protecting routes and managing user sessions
+ * Provides JWT token validation, admin checks, and resource ownership verification
+ */
 
-// Extend Express Request type to include user data
-declare global {
-  namespace Express {
-    interface Request {
-      user?: SessionData;
-    }
-  }
-}
+const { AuthService } = require('../services/AuthService.cjs');
+const { logger } = require('../logger.cjs');
 
-export class AuthMiddleware {
-  private authService: AuthService;
+/**
+ * Session data structure attached to request object
+ * @typedef {Object} SessionData
+ * @property {number} userId - User ID
+ * @property {string} username - Username
+ * @property {boolean} isAdmin - Whether user has admin privileges
+ * @property {number} sessionId - Session identifier for tracking
+ */
 
+/**
+ * Authentication middleware class
+ * Provides various authentication and authorization middleware functions
+ */
+class AuthMiddleware {
   constructor() {
+    /** @type {AuthService} Authentication service instance */
     this.authService = new AuthService();
   }
 
   /**
    * Middleware to authenticate requests using JWT tokens
    * Adds user data to request object if token is valid
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @param {import('express').NextFunction} next - Express next function
+   * @returns {Promise<void>}
    */
-  authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  authenticate = async (req, res, next) => {
     try {
       const token = this.extractToken(req);
       
@@ -71,8 +81,12 @@ export class AuthMiddleware {
   /**
    * Middleware to require admin privileges
    * Must be used after authenticate middleware
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @param {import('express').NextFunction} next - Express next function
+   * @returns {void}
    */
-  requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  requireAdmin = (req, res, next) => {
     if (!req.user) {
       res.status(401).json({
         error: 'Authentication required',
@@ -100,11 +114,12 @@ export class AuthMiddleware {
   };
 
   /**
-   * Middleware to require the user to be the owner of a resource or an admin
-   * Expects userId parameter in request params or body
+   * Middleware factory to require user to be the owner of a resource or an admin
+   * @param {string} [userIdField='userId'] - Field name containing the user ID to check
+   * @returns {Function} Express middleware function
    */
-  requireOwnershipOrAdmin = (userIdField: string = 'userId') => {
-    return (req: Request, res: Response, next: NextFunction): void => {
+  requireOwnershipOrAdmin = (userIdField = 'userId') => {
+    return (req, res, next) => {
       if (!req.user) {
         res.status(401).json({
           error: 'Authentication required',
@@ -152,8 +167,12 @@ export class AuthMiddleware {
   /**
    * Optional authentication middleware - adds user data if token is present and valid
    * Does not reject requests without tokens
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @param {import('express').NextFunction} next - Express next function
+   * @returns {Promise<void>}
    */
-  optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  optionalAuth = async (req, res, next) => {
     try {
       const token = this.extractToken(req);
       
@@ -187,8 +206,12 @@ export class AuthMiddleware {
 
   /**
    * Middleware to refresh token if it's close to expiry
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @param {import('express').NextFunction} next - Express next function
+   * @returns {Promise<void>}
    */
-  refreshTokenIfNeeded = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  refreshTokenIfNeeded = async (req, res, next) => {
     try {
       const token = this.extractToken(req);
       
@@ -224,8 +247,11 @@ export class AuthMiddleware {
 
   /**
    * Extract JWT token from Authorization header or cookies
+   * @param {import('express').Request} req - Express request object
+   * @returns {string|null} JWT token or null if not found
+   * @private
    */
-  private extractToken(req: Request): string | null {
+  extractToken(req) {
     // Check Authorization header first (Bearer token)
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -243,4 +269,6 @@ export class AuthMiddleware {
 }
 
 // Export singleton instance
-export const authMiddleware = new AuthMiddleware();
+const authMiddleware = new AuthMiddleware();
+
+module.exports = { authMiddleware, AuthMiddleware };

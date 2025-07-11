@@ -1,22 +1,63 @@
-import { Request, Response } from 'express';
-import { AuthService } from '../services/AuthService';
-import { CreateUserData, LoginCredentials, RegisterRequest, LoginRequest } from '../types/auth';
-import { logger } from '../logger';
+/**
+ * Authentication controller handling user registration, login, logout, and profile management
+ * Provides REST API endpoints for user authentication and account management
+ */
 
-export class AuthController {
-  private authService: AuthService;
+const { AuthService } = require('../services/AuthService.cjs');
+const { logger } = require('../logger.cjs');
 
+/**
+ * User registration request structure
+ * @typedef {Object} RegisterRequest
+ * @property {string} username - Username
+ * @property {string} email - Email address
+ * @property {string} password - Password
+ * @property {string} [confirmPassword] - Password confirmation
+ */
+
+/**
+ * User login request structure
+ * @typedef {Object} LoginRequest
+ * @property {string} emailOrUsername - Email or username
+ * @property {string} password - Password
+ * @property {boolean} [rememberMe] - Whether to set persistent cookie
+ */
+
+/**
+ * User creation data structure
+ * @typedef {Object} CreateUserData
+ * @property {string} username - Username
+ * @property {string} email - Email address
+ * @property {string} password - Password
+ */
+
+/**
+ * Login credentials structure
+ * @typedef {Object} LoginCredentials
+ * @property {string} emailOrUsername - Email or username
+ * @property {string} password - Password
+ */
+
+/**
+ * Authentication controller class
+ * Handles all authentication-related HTTP endpoints
+ */
+class AuthController {
   constructor() {
+    /** @type {AuthService} Authentication service instance */
     this.authService = new AuthService();
   }
 
   /**
-   * Register a new user
-   * POST /api/auth/register
+   * Register a new user account
+   * @route POST /api/auth/register
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @returns {Promise<void>}
    */
-  register = async (req: Request, res: Response): Promise<void> => {
+  register = async (req, res) => {
     try {
-      const { username, email, password, confirmPassword }: RegisterRequest = req.body;
+      const { username, email, password, confirmPassword } = req.body;
 
       // Validate required fields
       if (!username || !email || !password) {
@@ -38,7 +79,8 @@ export class AuthController {
         return;
       }
 
-      const userData: CreateUserData = {
+      /** @type {CreateUserData} */
+      const userData = {
         username: username.trim(),
         email: email.trim().toLowerCase(),
         password
@@ -61,7 +103,7 @@ export class AuthController {
         },
         message: 'User registered successfully'
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Registration failed', {
         error: error.message,
         ip: req.ip,
@@ -97,12 +139,15 @@ export class AuthController {
   };
 
   /**
-   * Login user
-   * POST /api/auth/login
+   * Authenticate user login
+   * @route POST /api/auth/login
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @returns {Promise<void>}
    */
-  login = async (req: Request, res: Response): Promise<void> => {
+  login = async (req, res) => {
     try {
-      const { emailOrUsername, password, rememberMe }: LoginRequest = req.body;
+      const { emailOrUsername, password, rememberMe } = req.body;
 
       // Validate required fields
       if (!emailOrUsername || !password) {
@@ -114,7 +159,8 @@ export class AuthController {
         return;
       }
 
-      const credentials: LoginCredentials = {
+      /** @type {LoginCredentials} */
+      const credentials = {
         emailOrUsername: emailOrUsername.trim(),
         password
       };
@@ -147,7 +193,7 @@ export class AuthController {
         },
         message: 'Login successful'
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Login failed', {
         error: error.message,
         emailOrUsername: req.body.emailOrUsername,
@@ -174,10 +220,13 @@ export class AuthController {
   };
 
   /**
-   * Logout user
-   * POST /api/auth/logout
+   * Logout user and clear authentication tokens
+   * @route POST /api/auth/logout
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @returns {Promise<void>}
    */
-  logout = async (req: Request, res: Response): Promise<void> => {
+  logout = async (req, res) => {
     try {
       // Clear the token cookie
       res.clearCookie('token');
@@ -192,7 +241,7 @@ export class AuthController {
         success: true,
         message: 'Logout successful'
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Logout error', {
         error: error.message,
         userId: req.user?.userId
@@ -207,10 +256,13 @@ export class AuthController {
   };
 
   /**
-   * Get current user profile
-   * GET /api/auth/me
+   * Get current authenticated user profile
+   * @route GET /api/auth/me
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @returns {Promise<void>}
    */
-  me = async (req: Request, res: Response): Promise<void> => {
+  me = async (req, res) => {
     try {
       if (!req.user) {
         res.status(401).json({
@@ -248,7 +300,7 @@ export class AuthController {
           user
         }
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Me endpoint error', {
         error: error.message,
         userId: req.user?.userId
@@ -263,10 +315,13 @@ export class AuthController {
   };
 
   /**
-   * Refresh user token
-   * POST /api/auth/refresh
+   * Refresh user authentication token
+   * @route POST /api/auth/refresh
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @returns {Promise<void>}
    */
-  refreshToken = async (req: Request, res: Response): Promise<void> => {
+  refreshToken = async (req, res) => {
     try {
       const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies.token;
       
@@ -302,7 +357,7 @@ export class AuthController {
         },
         message: 'Token refreshed successfully'
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Token refresh error', {
         error: error.message,
         userId: req.user?.userId
@@ -318,9 +373,12 @@ export class AuthController {
 
   /**
    * Change user password
-   * POST /api/auth/change-password
+   * @route POST /api/auth/change-password
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @returns {Promise<void>}
    */
-  changePassword = async (req: Request, res: Response): Promise<void> => {
+  changePassword = async (req, res) => {
     try {
       if (!req.user) {
         res.status(401).json({
@@ -365,7 +423,7 @@ export class AuthController {
         success: true,
         message: 'Password changed successfully'
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Password change failed', {
         error: error.message,
         userId: req.user?.userId,
@@ -399,3 +457,5 @@ export class AuthController {
     }
   };
 }
+
+module.exports = { AuthController };
