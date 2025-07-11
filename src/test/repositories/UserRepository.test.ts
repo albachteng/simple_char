@@ -1,18 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { UserRepository } from '../../repositories/UserRepository';
 import { getDatabase } from '../../database/connection';
-import { logger } from '../../logger';
+import { logger } from '../../test-logger';
 
 // Mock the database connection
 vi.mock('../../database/connection');
 
 // Mock logger properly
-vi.mock('../../logger', () => ({
+vi.mock('../../test-logger', () => ({
   logger: {
     warn: vi.fn(),
     info: vi.fn(),
     error: vi.fn(),
-    debug: vi.fn()
+    debug: vi.fn(),
+    database: vi.fn()
   }
 }));
 
@@ -41,6 +42,8 @@ describe('UserRepository', () => {
     // Mock the knex function call directly
     vi.mocked(getDatabase).mockImplementation(() => {
       const knexMock = vi.fn().mockImplementation((tableName: string) => mockDb);
+      // Add raw method to the knex instance itself
+      knexMock.raw = vi.fn().mockImplementation((query) => query);
       return knexMock as any;
     });
 

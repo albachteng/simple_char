@@ -7,6 +7,8 @@ import { CharacterLoader } from './CharacterLoader'
 import { LogViewer } from './LogViewer'
 import { logger } from './logger'
 import { Stat, Race } from '../types';
+import { Group, Container, Title } from '@mantine/core'
+import { AuthStatus } from './components/AuthStatus'
 
 function App() {
 
@@ -137,6 +139,14 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Authentication Header */}
+      <Container size="xl" mb="md">
+        <Group justify="space-between" align="center" py="sm">
+          <Title order={2} c="dimmed">Simple Character</Title>
+          <AuthStatus />
+        </Group>
+      </Container>
+
       {!hasCharacter ? (
         <CharacterCreationFlow
           onCharacterCreated={handleCharacterCreated}

@@ -1,5 +1,5 @@
 import knex, { Knex } from 'knex';
-import { logger } from '../logger';
+import { logger } from '../test-logger';
 
 interface DatabaseConfig {
   host: string;

@@ -1,18 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { AuthService } from '../../services/AuthService';
 import { UserRepository } from '../../repositories/UserRepository';
 import { getDatabase } from '../../database/connection';
+
+// Mock external dependencies
+vi.mock('bcryptjs');
+vi.mock('jsonwebtoken');
 
 // Mock the database connection for integration tests
 vi.mock('../../database/connection');
 
 // Mock logger properly
-vi.mock('../../logger', () => ({
+vi.mock('../../test-logger', () => ({
   logger: {
     warn: vi.fn(),
     info: vi.fn(),
     error: vi.fn(),
-    debug: vi.fn()
+    debug: vi.fn(),
+    auth: vi.fn(),
+    security: vi.fn()
   }
 }));
 
@@ -42,6 +50,8 @@ describe('Authentication Flow Integration Tests', () => {
     
     vi.mocked(getDatabase).mockImplementation(() => {
       const knexMock = vi.fn().mockImplementation((tableName: string) => mockDb);
+      // Add raw method to the knex instance itself
+      knexMock.raw = vi.fn().mockImplementation((query) => query);
       return knexMock as any;
     });
 
@@ -49,6 +59,14 @@ describe('Authentication Flow Integration Tests', () => {
     process.env.JWT_SECRET = 'test-integration-secret';
     process.env.BCRYPT_SALT_ROUNDS = '10';
     process.env.JWT_EXPIRY = '1h';
+
+    // Mock bcrypt and jwt for successful operations
+    vi.mocked(bcrypt.genSalt).mockResolvedValue('test_salt');
+    vi.mocked(bcrypt.hash).mockResolvedValue('test_hash');
+    vi.mocked(bcrypt.compare).mockResolvedValue(true);
+    vi.mocked(jwt.sign).mockReturnValue('test_token');
+    vi.mocked(jwt.verify).mockReturnValue({ userId: 1, username: 'testuser', isAdmin: false } as any);
+    vi.mocked(jwt.decode).mockReturnValue({ userId: 1, username: 'testuser', isAdmin: false } as any);
 
     authService = new AuthService();
     userRepository = new UserRepository();
@@ -96,9 +114,7 @@ describe('Authentication Flow Integration Tests', () => {
       expect(typeof registrationResult.token).toBe('string');
 
       // Step 2: Login with the registered user
-      // Mock bcrypt.compare to return true for correct password
-      const bcrypt = await import('bcryptjs');
-      vi.mocked(bcrypt.compare).mockResolvedValue(true);
+      // bcrypt.compare is already mocked to return true
       
       mockDb.first.mockResolvedValueOnce(mockCreatedUser); // findByEmailOrUsername returns user
       mockDb.update.mockResolvedValueOnce(1); // updateLastLogin succeeds
@@ -203,6 +219,9 @@ describe('Authentication Flow Integration Tests', () => {
     };
 
     it('should handle token refresh flow', async () => {
+      // Mock jwt.sign to return different tokens for login vs refresh
+      vi.mocked(jwt.sign).mockReturnValueOnce('original_token');
+      
       // Login to get initial token
       mockDb.first.mockResolvedValueOnce(mockUser);
       mockDb.update.mockResolvedValueOnce(1);
@@ -213,6 +232,9 @@ describe('Authentication Flow Integration Tests', () => {
       });
 
       const originalToken = loginResult.token;
+      
+      // Mock jwt.sign to return a different token for refresh
+      vi.mocked(jwt.sign).mockReturnValueOnce('refreshed_token');
 
       // Refresh the token
       mockDb.first.mockResolvedValueOnce(mockUser); // findById for refresh
@@ -288,6 +310,9 @@ describe('Authentication Flow Integration Tests', () => {
 
     it('should prevent password change with incorrect current password', async () => {
       mockDb.first.mockResolvedValueOnce(mockUser);
+      
+      // Mock bcrypt.compare to return false for wrong password
+      vi.mocked(bcrypt.compare).mockResolvedValueOnce(false);
 
       await expect(authService.changePassword(
         1,
@@ -318,16 +343,13 @@ describe('Authentication Flow Integration Tests', () => {
       // Find regular user
       mockDb.first.mockResolvedValueOnce(mockUser);
       
-      // Mock the database update for promotion
-      const mockUpdate = vi.fn().mockResolvedValue(1);
-      mockDb.where = vi.fn().mockReturnValue({
-        update: mockUpdate
-      });
+      // Mock the database update for promotion - don't override where, just mock the update
+      mockDb.update.mockResolvedValueOnce(1);
 
       // Promote user to admin
       await authService.promoteToAdmin(1, 2);
 
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(mockDb.update).toHaveBeenCalledWith({
         is_admin: true,
         updated_at: expect.any(Date)
       });

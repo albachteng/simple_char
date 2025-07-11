@@ -3,6 +3,9 @@
  * Starts the HTTP server and handles process signals for clean shutdown
  */
 
+// Load environment variables first
+require('dotenv').config();
+
 const app = require('./app.cjs');
 const { logger } = require('./logger.cjs');
 

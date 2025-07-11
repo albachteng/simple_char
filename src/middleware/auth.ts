@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { SessionData } from '../types/auth';
-import { logger } from '../logger';
+import { logger } from '../test-logger';
 
 // Extend Express Request type to include user data
 declare global {

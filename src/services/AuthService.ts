@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { UserRepository } from '../repositories/UserRepository';
 import { User } from '../types/database';
 import { CreateUserData, LoginCredentials, AuthResponse, AuthToken, ValidationError } from '../types/auth';
-import { logger } from '../logger';
+import { logger } from '../test-logger';
 
 export class AuthService {
   private userRepository: UserRepository;

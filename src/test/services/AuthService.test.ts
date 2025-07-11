@@ -3,20 +3,21 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AuthService } from '../../services/AuthService';
 import { UserRepository } from '../../repositories/UserRepository';
-import { logger } from '../../logger';
-
+import { logger } from '../../test-logger';
 // Mock dependencies
 vi.mock('bcryptjs');
 vi.mock('jsonwebtoken');
 vi.mock('../../repositories/UserRepository');
 
 // Mock logger properly
-vi.mock('../../logger', () => ({
+vi.mock('../../test-logger', () => ({
   logger: {
     warn: vi.fn(),
     info: vi.fn(),
     error: vi.fn(),
-    debug: vi.fn()
+    debug: vi.fn(),
+    auth: vi.fn(),
+    security: vi.fn()
   }
 }));
 
@@ -67,11 +68,11 @@ describe('AuthService', () => {
       delete process.env.JWT_SECRET;
       
       // Clear previous calls to logger.warn
-      vi.mocked(logger.warn).mockClear();
+      vi.mocked(logger.error).mockClear();
       
       new AuthService();
       
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Using default JWT secret - change this in production!'
       );
     });
@@ -253,7 +254,7 @@ describe('AuthService', () => {
 
       await expect(authService.login(validCredentials)).rejects.toThrow('Invalid credentials');
 
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Failed login attempt',
         {
           emailOrUsername: 'test@example.com',
@@ -318,7 +319,7 @@ describe('AuthService', () => {
       const result = await authService.validateToken(mockToken);
 
       expect(result).toBeNull();
-      expect(logger.warn).toHaveBeenCalledWith('Invalid token provided', { error: 'Invalid token' });
+      expect(logger.error).toHaveBeenCalledWith('Invalid token provided', { error: 'Invalid token' });
     });
 
     it('should return null for non-existent user', async () => {

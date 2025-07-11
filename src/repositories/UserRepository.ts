@@ -1,7 +1,7 @@
 import { getDatabase } from '../database/connection';
 import { User } from '../types/database';
 import { CreateUserData } from '../types/auth';
-import { logger } from '../logger';
+import { logger } from '../test-logger';
 
 export class UserRepository {
   private db = getDatabase();

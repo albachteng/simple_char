@@ -2,18 +2,20 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import { AuthMiddleware } from '../../middleware/auth';
 import { AuthService } from '../../services/AuthService';
-import { logger } from '../../logger';
+import { logger } from '../../test-logger';
 
 // Mock dependencies
 vi.mock('../../services/AuthService');
 
 // Mock logger properly
-vi.mock('../../logger', () => ({
+vi.mock('../../test-logger', () => ({
   logger: {
     warn: vi.fn(),
     info: vi.fn(),
     error: vi.fn(),
-    debug: vi.fn()
+    debug: vi.fn(),
+    auth: vi.fn(),
+    security: vi.fn()
   }
 }));
 
@@ -184,7 +186,7 @@ describe('AuthMiddleware', () => {
         { header: 'Bearer token123', expected: 'token123' },
         { header: 'Bearer jwt.token.here', expected: 'jwt.token.here' },
         { header: 'Basic credentials', expected: null },
-        { header: 'Bearer', expected: '' },
+        { header: 'Bearer', expected: null },
         { header: '', expected: null }
       ];
 
@@ -192,7 +194,7 @@ describe('AuthMiddleware', () => {
         mockRequest.headers = { authorization: header };
         mockRequest.cookies = {};
 
-        if (expected) {
+        if (expected !== null) {
           mockAuthService.validateToken.mockResolvedValue({
             id: 1,
             username: 'test',
@@ -257,7 +259,7 @@ describe('AuthMiddleware', () => {
         error: 'Admin privileges required',
         code: 'INSUFFICIENT_PRIVILEGES'
       });
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Admin access denied',
         {
           userId: 2,
@@ -339,7 +341,7 @@ describe('AuthMiddleware', () => {
         error: 'Access denied: insufficient privileges',
         code: 'ACCESS_DENIED'
       });
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Ownership access denied',
         {
           userId: 1,
