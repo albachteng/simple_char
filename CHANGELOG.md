@@ -181,6 +181,20 @@ All notable changes to this project will be documented in this file.
   - UI/UX enhancements: Loading states, success/error alerts, password confirmation, responsive design
   - App integration: Authentication header added to main application with "Simple Character" branding
   - Reused existing patterns: Consistent with Mantine theme, modal patterns, and component architecture
+- **Fixed authentication test suite**: Resolved failing AuthModal tests with proper test isolation (2025-07-11 13:43:20 CDT)
+  - Fixed modal rendering conflicts by adding proper cleanup and using placeholder selectors
+  - Resolved button selection issues in registration mode with improved element finding
+  - Added comprehensive test coverage: 6 tests covering login, registration, validation, success/error handling
+  - All 446 tests now passing across 46 test files (100% test suite health restored)
+- **Dual storage system**: Seamless localStorage/database integration with automatic fallback (2025-07-11 13:47:09 CDT)
+  - useStorage hook: Automatic storage selection based on authentication status (logged in = database, logged out = localStorage)
+  - StorageProvider: Context-based storage management with fallback mechanisms and error handling
+  - StorageStatus component: Visual indicator showing current storage mode (Database vs Local Only) with sync option
+  - Smart fallback system: Database operations fall back to localStorage on errors, ensuring data never lost
+  - Character migration: Sync local characters to database when user logs in (preserves both copies)
+  - API integration: Full CRUD operations for characters with proper authentication headers and error handling
+  - Backward compatibility: Existing localStorage behavior preserved for offline users
+  - App integration: Storage status displayed in header alongside authentication controls
 
 ---
 

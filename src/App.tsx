@@ -9,6 +9,7 @@ import { logger } from './logger'
 import { Stat, Race } from '../types';
 import { Group, Container, Title } from '@mantine/core'
 import { AuthStatus } from './components/AuthStatus'
+import { StorageStatus } from './components/StorageModeSelector'
 
 function App() {
 
@@ -143,7 +144,10 @@ function App() {
       <Container size="xl" mb="md">
         <Group justify="space-between" align="center" py="sm">
           <Title order={2} c="dimmed">Simple Character</Title>
-          <AuthStatus />
+          <Group gap="lg">
+            <StorageStatus />
+            <AuthStatus />
+          </Group>
         </Group>
       </Container>
 

@@ -5,6 +5,7 @@ import '@mantine/core/styles.css'
 import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './hooks/useAuth.tsx'
+import { StorageProvider } from './hooks/useStorage.tsx'
 
 const theme = createTheme({
   colors: {
@@ -29,7 +30,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MantineProvider theme={theme} defaultColorScheme="dark">
       <AuthProvider>
-        <App />
+        <StorageProvider>
+          <App />
+        </StorageProvider>
       </AuthProvider>
     </MantineProvider>
   </StrictMode>,
