@@ -10,7 +10,7 @@ exports.up = async function(knex) {
     // Learning requirements
     table.integer('min_level').defaultTo(1);
     table.jsonb('stat_requirements'); // {"str": 16, "int": 12}
-    table.specificType('prerequisite_abilities', 'integer[]'); // Array of ability_template IDs
+    table.jsonb('prerequisite_abilities'); // Array of ability_template IDs
     
     // Usage properties
     table.integer('resource_cost').defaultTo(0);

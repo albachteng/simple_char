@@ -5,7 +5,7 @@ exports.up = async function(knex) {
     table.string('name', 50).notNullable().unique();
     table.text('description');
     table.jsonb('stat_bonuses').notNullable(); // [{"stat": "str", "bonus": 2}, {"stat": "any", "bonus": 1}]
-    table.specificType('racial_abilities', 'integer[]'); // Array of ability_template IDs
+    table.jsonb('racial_abilities'); // Array of ability_template IDs
     table.text('flavor_text');
     table.boolean('is_active').defaultTo(true);
     table.timestamp('created_at').defaultTo(knex.fn.now());

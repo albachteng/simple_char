@@ -26,7 +26,7 @@ export async function seed(knex: Knex): Promise<void> {
         { stat: 'dex', bonus: 2 }
       ]),
       racial_abilities: [],
-      flavor_text: 'Elves are nimble and have a natural connection to magic.'
+      flavor_text: 'Elves are dextrous and have a strong connection to the natural world.'
     },
     {
       name: 'dwarf',
@@ -39,32 +39,31 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       name: 'halfling',
-      description: 'Lucky and quick',
+      description: 'Quick and furtive',
       stat_bonuses: JSON.stringify([
         { stat: 'dex', bonus: 1 },
         { stat: 'int', bonus: 1 }
       ]),
       racial_abilities: [],
-      flavor_text: 'Halflings are known for their luck and quick thinking.'
+      flavor_text: 'Halflings are known for their uncanny luck and quick thinking.'
     },
     {
       name: 'gnome',
-      description: 'Small but clever',
+      description: 'Insightful and precise',
       stat_bonuses: JSON.stringify([
         { stat: 'int', bonus: 2 }
       ]),
       racial_abilities: [],
-      flavor_text: 'Gnomes are small in stature but big in intellect.'
+      flavor_text: 'Gnomes are known for their force of mind and magical experimentation.'
     },
     {
       name: 'dragonborn',
       description: 'Proud and powerful',
       stat_bonuses: JSON.stringify([
-        { stat: 'str', bonus: 2 },
-        { stat: 'any', bonus: 1 }
+        { stat: 'any', bonus: 2 },
       ]),
       racial_abilities: [],
-      flavor_text: 'Dragonborn possess the strength and pride of their draconic heritage.'
+      flavor_text: 'Dragonborn are paragons of their chosen domain, disciplined and determined.'
     }
   ]);
 
@@ -78,7 +77,6 @@ export async function seed(knex: Knex): Promise<void> {
       base_damage_dice: '1d12',
       valid_slots: JSON.stringify(['main-hand']),
       conflicts_with: JSON.stringify(['off-hand', 'shield']),
-      str_requirement: 13
     },
     {
       name: 'Longsword',
@@ -87,7 +85,6 @@ export async function seed(knex: Knex): Promise<void> {
       description: 'A versatile one-handed sword',
       base_damage_dice: '1d8',
       valid_slots: JSON.stringify(['main-hand', 'off-hand']),
-      str_requirement: 11
     },
     {
       name: 'Rapier',
@@ -96,17 +93,15 @@ export async function seed(knex: Knex): Promise<void> {
       description: 'A light, thrusting sword',
       base_damage_dice: '1d6',
       valid_slots: JSON.stringify(['main-hand', 'off-hand']),
-      dex_requirement: 11
     },
     {
       name: 'Longbow',
       type: 'weapon',
       subtype: 'ranged',
       description: 'A powerful ranged weapon',
-      base_damage_dice: '1d8',
+      base_damage_dice: '1d6',
       valid_slots: JSON.stringify(['main-hand']),
       conflicts_with: JSON.stringify(['off-hand', 'shield']),
-      dex_requirement: 13
     },
     {
       name: 'Staff',
@@ -114,16 +109,15 @@ export async function seed(knex: Knex): Promise<void> {
       subtype: 'staff',
       description: 'A magical focusing staff',
       base_damage_dice: '1d4',
-      valid_slots: JSON.stringify(['main-hand']),
+      valid_slots: JSON.stringify(['main-hand', 'off-hand']),
       conflicts_with: JSON.stringify(['off-hand', 'shield']),
-      int_requirement: 11
     },
     {
       name: 'Leather Armor',
       type: 'armor',
       subtype: 'light',
       description: 'Light, flexible protection',
-      base_ac_bonus: 2,
+      base_ac_bonus: 1,
       valid_slots: JSON.stringify(['armor'])
     },
     {
@@ -131,18 +125,16 @@ export async function seed(knex: Knex): Promise<void> {
       type: 'armor',
       subtype: 'medium',
       description: 'Interlocking metal rings',
-      base_ac_bonus: 4,
+      base_ac_bonus: 2,
       valid_slots: JSON.stringify(['armor']),
-      str_requirement: 11
     },
     {
       name: 'Plate Armor',
       type: 'armor',
       subtype: 'heavy',
       description: 'Full plate protection',
-      base_ac_bonus: 6,
+      base_ac_bonus: 3,
       valid_slots: JSON.stringify(['armor']),
-      str_requirement: 15
     },
     {
       name: 'Shield',
@@ -151,88 +143,6 @@ export async function seed(knex: Knex): Promise<void> {
       base_ac_bonus: 2,
       valid_slots: JSON.stringify(['shield']),
       conflicts_with: JSON.stringify(['off-hand'])
-    }
-  ]);
-
-  // Insert basic ability templates (metamagic, spellwords, combat maneuvers)
-  await knex('ability_templates').insert([
-    {
-      name: 'Empowered',
-      type: 'metamagic',
-      description: 'Increase spell damage',
-      short_description: '+50% spell damage',
-      resource_cost: 1,
-      resource_type: 'sorcery',
-      source: 'core'
-    },
-    {
-      name: 'Extended',
-      type: 'metamagic',
-      description: 'Double spell duration',
-      short_description: 'x2 duration',
-      resource_cost: 1,
-      resource_type: 'sorcery',
-      source: 'core'
-    },
-    {
-      name: 'Heightened',
-      type: 'metamagic',
-      description: 'Increase spell level',
-      short_description: '+1 spell level',
-      resource_cost: 2,
-      resource_type: 'sorcery',
-      source: 'core'
-    },
-    {
-      name: 'Fire',
-      type: 'spellword',
-      description: 'Elemental fire magic',
-      short_description: 'Fire element',
-      resource_cost: 0,
-      source: 'core'
-    },
-    {
-      name: 'Ice',
-      type: 'spellword',
-      description: 'Elemental ice magic',
-      short_description: 'Ice element',
-      resource_cost: 0,
-      source: 'core'
-    },
-    {
-      name: 'Lightning',
-      type: 'spellword',
-      description: 'Elemental lightning magic',
-      short_description: 'Lightning element',
-      resource_cost: 0,
-      source: 'core'
-    },
-    {
-      name: 'Power Attack',
-      type: 'combat_maneuver',
-      description: 'Trade accuracy for damage',
-      short_description: '-2 attack, +4 damage',
-      resource_cost: 1,
-      resource_type: 'combat_maneuver',
-      source: 'core'
-    },
-    {
-      name: 'Defensive Stance',
-      type: 'combat_maneuver',
-      description: 'Increase AC at cost of attack',
-      short_description: '+2 AC, -2 attack',
-      resource_cost: 1,
-      resource_type: 'combat_maneuver',
-      source: 'core'
-    },
-    {
-      name: 'Cleave',
-      type: 'combat_maneuver',
-      description: 'Attack multiple adjacent enemies',
-      short_description: 'Hit multiple foes',
-      resource_cost: 1,
-      resource_type: 'combat_maneuver',
-      source: 'core'
     }
   ]);
 

@@ -33,6 +33,7 @@
     "db:migrate:rollback": "knex migrate:rollback --knexfile knexfile.cjs",
     "db:migrate:make": "knex migrate:make --knexfile knexfile.cjs",
     "db:seed": "knex seed:run --knexfile knexfile.cjs",
+    "db:seed:make": "knex seed:make --knexfile knexfile.cjs",
     "db:reset": "knex migrate:rollback:all --knexfile knexfile.cjs && knex migrate:latest --knexfile knexfile.cjs && knex seed:run --knexfile knexfile.cjs"
   },
   "dependencies": {

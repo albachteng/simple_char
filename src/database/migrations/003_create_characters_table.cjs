@@ -5,8 +5,8 @@ exports.up = function(knex) {
     table.string('name', 100).notNullable();
     
     // Core stats and creation parameters
-    table.string('high_stat', 3).notNullable().checkIn(['str', 'dex', 'int']);
-    table.string('mid_stat', 3).notNullable().checkIn(['str', 'dex', 'int']);
+    table.string('high_stat', 3).notNullable(); // 'str', 'dex', or 'int'
+    table.string('mid_stat', 3).notNullable(); // 'str', 'dex', or 'int'
     table.string('race', 50);
     table.jsonb('racial_bonuses'); // Array of racial bonus strings
     
