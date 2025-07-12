@@ -217,7 +217,7 @@ async function listFromLocal(): Promise<string[]> {
 // Database storage functions (API integration)
 async function saveToDatabase(name: string, character: ICharacterStorage, token: string): Promise<boolean> {
   try {
-    const response = await fetch('http://localhost:3001/api/characters', {
+    const response = await fetch('/api/characters', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ async function saveToDatabase(name: string, character: ICharacterStorage, token:
 
 async function loadFromDatabase(name: string, token: string): Promise<ICharacterStorage | null> {
   try {
-    const response = await fetch(`http://localhost:3001/api/characters/${encodeURIComponent(name)}`, {
+    const response = await fetch(`/api/characters/${encodeURIComponent(name)}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -259,7 +259,7 @@ async function loadFromDatabase(name: string, token: string): Promise<ICharacter
 
 async function deleteFromDatabase(name: string, token: string): Promise<boolean> {
   try {
-    const response = await fetch(`http://localhost:3001/api/characters/${encodeURIComponent(name)}`, {
+    const response = await fetch(`/api/characters/${encodeURIComponent(name)}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -276,7 +276,7 @@ async function deleteFromDatabase(name: string, token: string): Promise<boolean>
 
 async function listFromDatabase(token: string): Promise<string[]> {
   try {
-    const response = await fetch('http://localhost:3001/api/characters', {
+    const response = await fetch('/api/characters', {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

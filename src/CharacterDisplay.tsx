@@ -287,7 +287,11 @@ export function CharacterDisplay({
           spendSorceryPoint={spendSorceryPoint}
           spendCombatManeuverPoint={spendCombatManeuverPoint}
         />
-        <InventoryViewer inventoryManager={char.inventory} onInventoryChange={onInventoryChange} />
+        <InventoryViewer 
+          inventoryManager={char.inventory} 
+          onInventoryChange={onInventoryChange}
+          characterStats={{ str, dex, int }}
+        />
         <CombatActions 
           char={char}
           sneakAttackMainHand={sneakAttackMainHand}

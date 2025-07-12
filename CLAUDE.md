@@ -90,6 +90,12 @@ The following features are planned for development:
 - Document all changes in changelog with timestamps
 - Test thoroughly before moving to next feature
 
+## Testing Strategy
+- **TESTING_STRATEGY.md** - Comprehensive testing plan including integration tests, E2E tests, and unit test audit
+- Current test suite: 441 tests across 47 files with 98.2% pass rate using Vitest + Testing Library
+- Planned additions: Cypress E2E tests, API integration tests, coverage reporting
+- Test audit needed: Identify duplicates and gaps in current 47 test files
+
 ## IMPORTANT: Game System Rules
 
 **DO NOT MODIFY CONSTANTS.TS** - This file contains the game balance and rules for a custom RPG system (NOT D&D). The racial bonuses, stat progressions, equipment values, and other game mechanics are specifically designed for this system. Do not:
@@ -132,3 +138,55 @@ Currently in **Phase 1: Foundation** - Setting up database infrastructure and us
 - **Character logging** with per-character and global application logs
 
 When implementing new features, always check these migration documents first to ensure consistency with the overall database migration strategy.
+
+## Backend System File Reference
+
+### Core Server Files
+- **src/server.js** - Main server startup and lifecycle management (converted from TS)
+- **src/app.js** - Express application setup with middleware and route registration (converted from TS)
+- **src/database/connection.js** - Database connection manager (Knex + PostgreSQL) (converted from TS)
+
+### API Routes and Controllers
+- **src/routes/index.js** - Main API router with equipment routes registration (converted from TS)
+- **src/api/routes/equipmentRoutes.js** - Equipment template API routes
+- **src/api/controllers/EquipmentController.js** - Equipment template controller with CRUD operations
+- **src/routes/auth.ts** - Authentication API routes (login, register, logout, etc.)
+- **src/routes/admin.ts** - Admin API routes (user management)
+- **src/controllers/AuthController.ts** - Authentication controller
+- **src/controllers/AdminController.ts** - Admin controller
+
+### Services and Middleware
+- **src/services/AuthService.ts** - Authentication business logic and JWT handling
+- **src/middleware/auth.ts** - JWT authentication middleware
+- **src/middleware/validation.ts** - Request validation middleware
+- **src/middleware/errorHandler.ts** - Global error handling middleware
+
+### Database Schema and Seeds
+- **src/database/migrations/** - Knex migration files (001-010 covering all tables)
+- **src/database/seeds/001_equipment_templates.cjs** - Equipment templates seed data
+- **src/database/seeds/002_ability_templates.cjs** - Ability templates seed data
+- **src/database/seeds/003_character_races.cjs** - Character races seed data
+
+### Frontend Integration
+- **src/hooks/useAuth.tsx** - Authentication context and state management
+- **src/hooks/useStorage.tsx** - Dual storage system (localStorage/database)
+- **src/components/AuthStatus.tsx** - Authentication UI component
+- **src/components/StorageModeSelector.tsx** - Storage status indicator
+
+### Configuration and Utilities
+- **src/test-logger.js** - Logging configuration for backend services
+- **knexfile.js** - Knex database configuration
+- **knex-wrapper.js** - Migration runner utilities
+- **.env** - Environment variables (DATABASE_HOST, DATABASE_PASSWORD, etc.)
+
+### Quick Server Commands
+- `npm run dev` - Start frontend development server (port 3000)
+- `node src/server.js` - Start backend API server (port 3001)
+- `node knex-wrapper.js migrate:latest` - Run database migrations
+- `node knex-wrapper.js seed:run` - Run database seeds
+
+### Important Notes
+- Backend is being converted from TypeScript to JavaScript for compatibility
+- Database connection requires .env file with PostgreSQL credentials
+- Equipment templates are seeded from constants.ts game balance data
+- Authentication uses JWT tokens with bcrypt password hashing

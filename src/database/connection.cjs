@@ -1,45 +1,28 @@
 /**
- * Database connection management using Knex.js with PostgreSQL
- * Provides singleton database connection with connection pooling, error handling, and utility methods
+ * Database Connection Manager
+ * Singleton database connection with PostgreSQL using Knex
  */
 
 const knex = require('knex');
-const { logger } = require('../logger.cjs');
+const { logger } = require('../test-logger.cjs');
 
 /**
- * Database configuration object
  * @typedef {Object} DatabaseConfig
  * @property {string} host - Database host
  * @property {number} port - Database port
  * @property {string} database - Database name
- * @property {string} user - Database username
+ * @property {string} user - Database user
  * @property {string} password - Database password
- * @property {boolean} [ssl] - Enable SSL connection
- * @property {number} [maxConnections] - Maximum number of connections in pool
- * @property {number} [connectionTimeoutMillis] - Connection timeout in milliseconds
+ * @property {boolean} [ssl] - Use SSL connection
+ * @property {number} [maxConnections] - Maximum connections in pool
+ * @property {number} [connectionTimeoutMillis] - Connection timeout
  */
 
-/**
- * Database connection manager using singleton pattern
- * Manages Knex.js instance with connection pooling and error handling
- */
 class DatabaseConnection {
-  /**
-   * @type {DatabaseConnection}
-   * @private
-   */
-  static instance;
-  
-  /**
-   * @type {import('knex').Knex}
-   * @private
-   */
-  knexInstance;
+  static instance = null;
 
   /**
-   * Private constructor - use getInstance() instead
    * @param {DatabaseConfig} config - Database configuration
-   * @private
    */
   constructor(config) {
     this.knexInstance = knex({
@@ -69,10 +52,9 @@ class DatabaseConnection {
   }
 
   /**
-   * Get or create singleton database connection instance
-   * @param {DatabaseConfig} [config] - Database configuration (only used on first call)
+   * Get singleton database instance
+   * @param {DatabaseConfig} [config] - Database configuration
    * @returns {DatabaseConnection} Database connection instance
-   * @throws {Error} If no config provided and no environment variables set
    */
   static getInstance(config) {
     if (!DatabaseConnection.instance) {
@@ -102,7 +84,7 @@ class DatabaseConnection {
   }
 
   /**
-   * Get the Knex instance for database operations
+   * Get Knex instance
    * @returns {import('knex').Knex} Knex database instance
    */
   get knex() {
@@ -110,11 +92,10 @@ class DatabaseConnection {
   }
 
   /**
-   * Execute raw SQL query with optional parameter bindings
+   * Execute raw SQL query
    * @param {string} sql - SQL query string
    * @param {any[]} [bindings] - Query parameter bindings
    * @returns {Promise<any>} Query result
-   * @throws {Error} Database query error
    */
   async query(sql, bindings) {
     const start = Date.now();
@@ -140,18 +121,17 @@ class DatabaseConnection {
   }
 
   /**
-   * Execute operations within a database transaction
-   * @template T
-   * @param {function(import('knex').Knex.Transaction): Promise<T>} callback - Transaction callback function
-   * @returns {Promise<T>} Transaction result
+   * Execute database transaction
+   * @param {Function} callback - Transaction callback function
+   * @returns {Promise<any>} Transaction result
    */
   async transaction(callback) {
     return await this.knexInstance.transaction(callback);
   }
 
   /**
-   * Test database connection with a simple query
-   * @returns {Promise<boolean>} True if connection successful, false otherwise
+   * Test database connection
+   * @returns {Promise<boolean>} Connection test result
    */
   async testConnection() {
     try {
@@ -165,7 +145,7 @@ class DatabaseConnection {
   }
 
   /**
-   * Setup database event handlers and logging
+   * Setup event handlers
    * @private
    */
   setupEventHandlers() {
@@ -175,7 +155,7 @@ class DatabaseConnection {
   }
 
   /**
-   * Close database connection and destroy connection pool
+   * Close database connection
    * @returns {Promise<void>}
    */
   async close() {
@@ -184,26 +164,29 @@ class DatabaseConnection {
   }
 
   /**
-   * Get column information for a specific table
-   * @param {string} tableName - Name of the table
-   * @returns {Promise<any>} Table column information
+   * Get table column information
+   * @param {string} tableName - Table name
+   * @returns {Promise<any>} Table column info
    */
   async getTableInfo(tableName) {
     return await this.knexInstance(tableName).columnInfo();
   }
 
   /**
-   * Check if a table exists in the database
-   * @param {string} tableName - Name of the table to check
-   * @returns {Promise<boolean>} True if table exists, false otherwise
+   * Check if table exists
+   * @param {string} tableName - Table name
+   * @returns {Promise<boolean>} Table existence check
    */
   async tableExists(tableName) {
     return await this.knexInstance.schema.hasTable(tableName);
   }
 }
 
+// Export both the class and convenience functions
+module.exports = { DatabaseConnection };
+
 /**
- * Get the singleton database instance (Knex object)
+ * Convenience function to get the database instance
  * @returns {import('knex').Knex} Knex database instance
  */
 function getDatabase() {
@@ -211,17 +194,13 @@ function getDatabase() {
 }
 
 /**
- * Initialize database connection with optional configuration
- * @param {DatabaseConfig} [config] - Optional database configuration
+ * Initialize database connection (will use environment variables)
+ * @param {DatabaseConfig} [config] - Database configuration
  * @returns {DatabaseConnection} Database connection instance
  */
 function initializeDatabase(config) {
   return DatabaseConnection.getInstance(config);
 }
 
-// Export both the class and convenience functions
-module.exports = {
-  DatabaseConnection,
-  getDatabase,
-  initializeDatabase
-};
+module.exports.getDatabase = getDatabase;
+module.exports.initializeDatabase = initializeDatabase;

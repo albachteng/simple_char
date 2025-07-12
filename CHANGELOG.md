@@ -195,6 +195,12 @@ All notable changes to this project will be documented in this file.
   - API integration: Full CRUD operations for characters with proper authentication headers and error handling
   - Backward compatibility: Existing localStorage behavior preserved for offline users
   - App integration: Storage status displayed in header alongside authentication controls
+- **CORS and proxy configuration**: Added Vite proxy for API calls during development (2025-07-11 14:26:00)
+  - Updated vite.config.ts with proxy configuration for /api routes to target localhost:3001
+  - Modified all frontend API calls to use relative URLs instead of hardcoded localhost:3001
+  - Created simple-auth.cjs for testing authentication without complex TypeScript dependencies
+  - Updated equipmentService.ts, useAuth.tsx, AuthModal.tsx, and useStorage.tsx to use proxy
+  - Fixed CORS issues between frontend (port 3000) and API server (port 3001) during development
 
 ---
 

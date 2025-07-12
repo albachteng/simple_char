@@ -8,10 +8,15 @@ import { InventoryItemComponent } from './components/InventoryItemComponent'
 interface InventoryViewerProps {
   inventoryManager: InventoryManager
   onInventoryChange?: () => void
+  characterStats?: {
+    str: number
+    dex: number
+    int: number
+  }
 }
 
 
-export function InventoryViewer({ inventoryManager, onInventoryChange }: InventoryViewerProps) {
+export function InventoryViewer({ inventoryManager, onInventoryChange, characterStats }: InventoryViewerProps) {
   const [items, setItems] = useState<InventoryItem[]>(inventoryManager.getItems())
   const [showAddModal, setShowAddModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -120,6 +125,7 @@ export function InventoryViewer({ inventoryManager, onInventoryChange }: Invento
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAddItem={handleAddItem}
+        characterStats={characterStats}
       />
     </>
   )

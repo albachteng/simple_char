@@ -1,24 +1,16 @@
 /**
- * Express server entry point with graceful shutdown handling
- * Starts the HTTP server and handles process signals for clean shutdown
+ * Express Server
+ * Main server startup and lifecycle management
  */
 
-// Load environment variables first
 require('dotenv').config();
-
 const app = require('./app.cjs');
-const { logger } = require('./logger.cjs');
+const { logger } = require('./test-logger.cjs');
 
-/** @type {number} Server port from environment or default */
 const PORT = process.env.PORT || 3001;
-
-/** @type {string} Server host from environment or default */
 const HOST = process.env.HOST || '0.0.0.0';
 
-/**
- * Graceful shutdown handler for process signals
- * @param {string} signal - The signal name (SIGTERM, SIGINT, etc.)
- */
+// Graceful shutdown handler
 const gracefulShutdown = (signal) => {
   logger.info(`Received ${signal}, shutting down gracefully`);
   
@@ -44,10 +36,7 @@ const server = app.listen(PORT, HOST, () => {
   });
 });
 
-/**
- * Handle server startup errors
- * @param {Error} error - Server error object
- */
+// Handle server errors
 server.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
     logger.error(`Port ${PORT} is already in use`);
@@ -57,24 +46,17 @@ server.on('error', (error) => {
   process.exit(1);
 });
 
-// Graceful shutdown handlers
+// Graceful shutdown
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-/**
- * Handle uncaught exceptions
- * @param {Error} error - Uncaught exception
- */
+// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught exception', { error: error.message, stack: error.stack });
   process.exit(1);
 });
 
-/**
- * Handle unhandled promise rejections
- * @param {*} reason - Rejection reason
- * @param {Promise} promise - The rejected promise
- */
+// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled rejection', { reason, promise });
   process.exit(1);

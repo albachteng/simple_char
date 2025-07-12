@@ -44,6 +44,23 @@ export interface InventoryItem {
   weaponType?: Weapon
   armorType?: Armor
   isShield?: boolean
+  
+  // Database template fields (for enhanced items from database)
+  subtype?: string
+  enchantment?: number
+  ac_bonus?: number
+  attack_bonus?: number
+  damage_dice?: string
+  str_bonus?: number
+  dex_bonus?: number
+  int_bonus?: number
+  str_requirement?: number
+  dex_requirement?: number
+  int_requirement?: number
+  valid_slots?: string[]
+  conflicts_with?: string[]
+  source?: 'local' | 'database'
+  template_id?: number
 }
 
 export interface CharacterInventory {

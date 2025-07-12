@@ -1,6 +1,6 @@
 /**
- * Express application configuration with security middleware, CORS, rate limiting, and routing
- * Sets up the main Express app with all middleware, security configurations, and API routes
+ * Express Application Setup
+ * Main application configuration with middleware, routes, and error handling
  */
 
 const express = require('express');
@@ -10,14 +10,25 @@ const helmet = require('helmet');
 const compression = require('compression');
 const path = require('path');
 const { rateLimit } = require('express-rate-limit');
-const apiRoutes = require('./routes/index.cjs');
+const { getDatabase, initializeDatabase } = require('./database/connection.cjs');
+const createMainRouter = require('./routes/index.cjs');
 const { errorHandler, notFoundHandler, timeoutHandler } = require('./middleware/errorHandler.cjs');
-// const { rateLimitValidation } = require('./middleware/validation'); // Not used yet
-const { logger } = require('./logger.cjs');
+const { logger } = require('./test-logger.cjs');
+
+// Initialize database connection
+let db;
+try {
+  const dbConnection = initializeDatabase();
+  db = dbConnection.knex;
+  logger.info('Database connection initialized successfully');
+} catch (error) {
+  logger.error('Failed to initialize database connection:', error);
+  process.exit(1);
+}
 
 const app = express();
 
-// Security middleware configuration
+// Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -49,13 +60,10 @@ app.use(cookieParser());
 // Compression middleware
 app.use(compression());
 
-// Request timeout middleware (30 second timeout)
-app.use(timeoutHandler(30000));
+// Request timeout middleware
+app.use(timeoutHandler(30000)); // 30 second timeout
 
-/**
- * Rate limit configuration for general API requests
- * @type {Object}
- */
+// Global rate limiting
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // Limit each IP to 1000 requests per windowMs
@@ -69,10 +77,7 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-/**
- * Stricter rate limit configuration for authentication endpoints
- * @type {Object}
- */
+// Strict rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 auth requests per windowMs
@@ -89,10 +94,7 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-/**
- * Request logging middleware
- * Logs request details including method, path, duration, and user info
- */
+// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   
@@ -112,10 +114,7 @@ app.use((req, res, next) => {
   next();
 });
 
-/**
- * Request ID middleware
- * Generates unique request IDs for tracking and debugging
- */
+// Request ID middleware
 app.use((req, res, next) => {
   const requestId = req.get('X-Request-ID') || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   req.headers['x-request-id'] = requestId;
@@ -123,15 +122,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// API routes
-app.use('/api', apiRoutes);
+// API routes with database connection
+app.use('/api', createMainRouter(db, logger));
 
-/**
- * Health check endpoint - provides server status and basic metrics
- * @route GET /health
- * @returns {Object} Server health information including uptime, memory usage, and version
- */
-app.get('/health', (_req, res) => {
+// Health check endpoint (outside of API routes)
+app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Server is healthy',
@@ -147,10 +142,7 @@ app.get('/health', (_req, res) => {
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('dist'));
   
-  /**
-   * Catch-all handler for SPA routing in production
-   * Serves index.html for non-API routes to support client-side routing
-   */
+  // Catch all handler for SPA
   app.get('*', (req, res) => {
     // Don't serve index.html for API routes
     if (req.path.startsWith('/api/')) {
@@ -161,7 +153,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// 404 handler for API routes
+// 404 handler for non-API routes
 app.use('/api/*', notFoundHandler);
 
 // Global error handler (must be last)

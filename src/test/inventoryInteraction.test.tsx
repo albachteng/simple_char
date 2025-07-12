@@ -1,18 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MantineProvider } from '@mantine/core'
 import { InventoryViewer } from '../InventoryViewer'
 import { InventoryManager } from '../inventory/InventoryManager'
 import { Char } from '../useChar'
-
-const renderWithMantine = (component: React.ReactNode) => {
-  return render(
-    <MantineProvider>
-      {component}
-    </MantineProvider>
-  )
-}
+import { renderWithProviders } from './test-utils'
 
 describe('InventoryViewer Interaction Tests', () => {
   let char: Char
@@ -29,7 +21,7 @@ describe('InventoryViewer Interaction Tests', () => {
   it('should render without crashing when opening AddItemModal', async () => {
     const user = userEvent.setup()
     
-    renderWithMantine(
+    renderWithProviders(
       <InventoryViewer
         inventoryManager={inventoryManager}
         onInventoryChange={onInventoryChange}
@@ -49,7 +41,7 @@ describe('InventoryViewer Interaction Tests', () => {
   it('should add items to inventory without crashing', async () => {
     const user = userEvent.setup()
     
-    renderWithMantine(
+    renderWithProviders(
       <InventoryViewer
         inventoryManager={inventoryManager}
         onInventoryChange={onInventoryChange}
@@ -93,7 +85,7 @@ describe('InventoryViewer Interaction Tests', () => {
       enchantmentLevel: 0
     })
 
-    renderWithMantine(
+    renderWithProviders(
       <InventoryViewer
         inventoryManager={inventoryManager}
         onInventoryChange={onInventoryChange}
@@ -126,7 +118,7 @@ describe('InventoryViewer Interaction Tests', () => {
     })
     inventoryManager.equipItem('test-sword')
 
-    renderWithMantine(
+    renderWithProviders(
       <InventoryViewer
         inventoryManager={inventoryManager}
         onInventoryChange={onInventoryChange}
@@ -159,7 +151,7 @@ describe('InventoryViewer Interaction Tests', () => {
       enchantmentLevel: 0
     })
 
-    renderWithMantine(
+    renderWithProviders(
       <InventoryViewer
         inventoryManager={inventoryManager}
         onInventoryChange={onInventoryChange}
@@ -193,7 +185,7 @@ describe('InventoryViewer Interaction Tests', () => {
       })
     }
 
-    renderWithMantine(
+    renderWithProviders(
       <InventoryViewer
         inventoryManager={inventoryManager}
         onInventoryChange={onInventoryChange}
@@ -227,7 +219,7 @@ describe('InventoryViewer Interaction Tests', () => {
       enchantmentLevel: 0
     })
 
-    renderWithMantine(
+    renderWithProviders(
       <InventoryViewer
         inventoryManager={inventoryManager}
         onInventoryChange={onInventoryChange}

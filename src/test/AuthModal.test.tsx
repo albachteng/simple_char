@@ -126,7 +126,7 @@ describe('AuthModal', () => {
       expect(screen.getByText('Login successful!')).toBeInTheDocument()
     })
 
-    expect(fetch).toHaveBeenCalledWith('http://localhost:3001/api/auth/login', {
+    expect(fetch).toHaveBeenCalledWith('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
