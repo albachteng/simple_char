@@ -81,6 +81,7 @@ The following features are planned for development:
 
 ### Documentation
 - **Changelog** - Track all changes with timestamps using `date` command
+- **[AUTHENTICATION.md](./AUTHENTICATION.md)** - Comprehensive authentication system analysis and troubleshooting guide
 - All changes should be documented with date/time stamps
 
 ## Development Guidelines
@@ -190,3 +191,23 @@ When implementing new features, always check these migration documents first to 
 - Database connection requires .env file with PostgreSQL credentials
 - Equipment templates are seeded from constants.ts game balance data
 - Authentication uses JWT tokens with bcrypt password hashing
+
+### Authentication System
+The authentication system supports two modes via the `AUTH_MODE` environment variable:
+
+- **AUTH_MODE=real** (default) - Full authentication with JWT tokens and database
+  - User registration with password validation
+  - JWT token generation and validation
+  - Database-backed user management
+  - Proper error handling and security
+
+- **AUTH_MODE=mock** - Mock authentication for testing
+  - Returns fake user data (id=1, username='testuser')
+  - Uses mock JWT token ('mock-jwt-token-12345')
+  - Accepts any password for login
+  - Useful for testing frontend without database
+
+#### Authentication Commands
+- `AUTH_MODE=real node src/server.cjs` - Start with real authentication
+- `AUTH_MODE=mock node src/server.cjs` - Start with mock authentication
+- Check current mode: `curl http://localhost:3001/api/health` (shows authMode)

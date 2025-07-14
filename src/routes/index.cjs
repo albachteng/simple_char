@@ -4,7 +4,15 @@
  */
 
 const { Router } = require('express');
-const authRoutes = require('./simple-auth.cjs');
+
+// Conditionally load authentication routes based on AUTH_MODE environment variable
+// AUTH_MODE=mock - Use simple mock authentication for testing
+// AUTH_MODE=real - Use full authentication system with JWT and database (default)
+const AUTH_MODE = process.env.AUTH_MODE || 'real';
+const authRoutes = AUTH_MODE === 'mock' 
+  ? require('./simple-auth.cjs')
+  : require('./auth.cjs');
+
 // const adminRoutes = require('./admin.cjs');
 const { createEquipmentRoutes } = require('../api/routes/equipmentRoutes.cjs');
 
@@ -23,11 +31,14 @@ function createMainRouter(knex, logger) {
       success: true,
       message: 'API is healthy',
       timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '1.0.0'
+      version: process.env.npm_package_version || '1.0.0',
+      authMode: AUTH_MODE
     });
   });
 
   // API routes
+  // Mock auth routes don't need database dependencies
+  // Real auth routes are self-contained and handle their own database connections
   router.use('/auth', authRoutes);
   // router.use('/admin', adminRoutes);
   router.use('/equipment', createEquipmentRoutes(knex, logger));
