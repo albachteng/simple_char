@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Button, TextInput, Paper, Text, Stack, Group, Modal } from '@mantine/core'
-import { CharacterManager } from './storage/CharacterManager'
-import { LocalStorageCharacterStorage } from './storage/LocalStorageCharacterStorage'
+import { Button, TextInput, Paper, Text, Stack, Group, Modal, Badge } from '@mantine/core'
 import { SavedCharacter } from './storage/ICharacterStorage'
 import { Char } from './useChar'
 import { Stat } from '../types'
+import { useStorage } from './hooks/useStorage'
+import { useAuth } from './hooks/useAuth'
+import { CharacterManager } from './storage/CharacterManager'
+import { HybridCharacterStorage } from './storage/HybridCharacterStorage'
 
 interface CharacterLoaderProps {
   opened: boolean
@@ -17,16 +19,20 @@ export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderPro
   const [hashInput, setHashInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  const characterManager = new CharacterManager(new LocalStorageCharacterStorage())
+  
+  const { listCharacterDetails, loadCharacter, deleteCharacter, isUsingDatabase, isLoading, syncLocalToDatabase, saveCharacter } = useStorage()
+  const { token } = useAuth()
+  
+  // Hybrid character manager that can load from both database and localStorage
+  const characterManager = new CharacterManager(new HybridCharacterStorage(token || undefined))
 
   useEffect(() => {
     loadCharacterList()
-  }, [])
+  }, [opened])
 
   const loadCharacterList = async () => {
     try {
-      const chars = await characterManager.listCharacters()
+      const chars = await listCharacterDetails()
       setCharacters(chars)
     } catch (err) {
       setError(`Failed to load character list: ${err}`)
@@ -38,6 +44,7 @@ export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderPro
     setError('')
 
     try {
+      // Use the hybrid character manager which handles both database and localStorage
       const result = await characterManager.loadCharacter(name)
       if (result) {
         onLoad?.(result.char, result.high, result.mid, result.racialBonuses, result.name)
@@ -79,7 +86,7 @@ export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderPro
     if (!confirmed) return
 
     try {
-      await characterManager.deleteCharacter(name)
+      await deleteCharacter(name)
       await loadCharacterList()
     } catch (err) {
       setError(`Failed to delete character: ${err}`)
@@ -95,6 +102,37 @@ export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderPro
       minute: '2-digit'
     })
   }
+
+  const handleUploadToDatabase = async (character: SavedCharacter) => {
+    if (!isUsingDatabase) {
+      setError('You must be logged in to upload characters to the database')
+      return
+    }
+
+    try {
+      await saveCharacter(character)
+      await loadCharacterList()
+    } catch (err) {
+      setError(`Failed to upload character: ${err}`)
+    }
+  }
+
+  const handleSyncAll = async () => {
+    if (!isUsingDatabase) {
+      setError('You must be logged in to sync characters to the database')
+      return
+    }
+
+    try {
+      await syncLocalToDatabase()
+      await loadCharacterList()
+    } catch (err) {
+      setError(`Failed to sync characters: ${err}`)
+    }
+  }
+
+  // Filter characters to show local-only ones for upload
+  const localOnlyCharacters = characters.filter(char => char.storageType === 'local')
 
   return (
     <Modal 
@@ -137,7 +175,16 @@ export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderPro
                 <Paper key={char.name} p="sm" withBorder style={{ backgroundColor: '#333' }}>
                   <Group justify="space-between">
                     <div>
-                      <Text fw={500} style={{ color: '#e0e0e0' }}>{char.name}</Text>
+                      <Group gap="xs" align="center">
+                        <Text fw={500} style={{ color: '#e0e0e0' }}>{char.name}</Text>
+                        <Badge 
+                          size="xs" 
+                          color={char.storageType === 'database' ? 'blue' : 'gray'}
+                          variant="light"
+                        >
+                          {char.storageType === 'database' ? 'Database' : 'Local'}
+                        </Badge>
+                      </Group>
                       <Text size="xs" c="dimmed">
                         {char.data.race ? `${char.data.race} - ` : ''}Level {char.data.level} - {formatDate(char.timestamp)}
                       </Text>
@@ -149,15 +196,25 @@ export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderPro
                       <Button
                         size="xs"
                         onClick={() => handleLoadByName(char.name)}
-                        disabled={loading}
+                        disabled={loading || isLoading}
                       >
                         Load
                       </Button>
+                      {char.storageType === 'local' && isUsingDatabase && (
+                        <Button
+                          size="xs"
+                          color="green"
+                          onClick={() => handleUploadToDatabase(char)}
+                          disabled={loading || isLoading}
+                        >
+                          Upload
+                        </Button>
+                      )}
                       <Button
                         size="xs"
                         color="red"
                         onClick={() => handleDelete(char.name)}
-                        disabled={loading}
+                        disabled={loading || isLoading}
                       >
                         Delete
                       </Button>
@@ -168,6 +225,28 @@ export function CharacterLoader({ opened, onLoad, onCancel }: CharacterLoaderPro
             </Stack>
           )}
         </div>
+
+        {/* Bulk Upload Section */}
+        {localOnlyCharacters.length > 0 && isUsingDatabase && (
+          <div>
+            <Text size="sm" fw={500} style={{ marginBottom: '8px' }}>Upload Local Characters</Text>
+            <Paper p="sm" withBorder style={{ backgroundColor: '#333' }}>
+              <Group justify="space-between">
+                <Text size="sm" style={{ color: '#e0e0e0' }}>
+                  {localOnlyCharacters.length} local character{localOnlyCharacters.length > 1 ? 's' : ''} can be uploaded to the database
+                </Text>
+                <Button
+                  size="xs"
+                  color="green"
+                  onClick={handleSyncAll}
+                  disabled={loading || isLoading}
+                >
+                  Upload All
+                </Button>
+              </Group>
+            </Paper>
+          </div>
+        )}
 
         {error && (
           <Text c="red" size="sm">{error}</Text>

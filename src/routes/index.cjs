@@ -15,6 +15,7 @@ const authRoutes = AUTH_MODE === 'mock'
 
 // const adminRoutes = require('./admin.cjs');
 const { createEquipmentRoutes } = require('../api/routes/equipmentRoutes.cjs');
+const characterRoutes = require('./characters.cjs');
 
 /**
  * Create main API router
@@ -42,6 +43,7 @@ function createMainRouter(knex, logger) {
   router.use('/auth', authRoutes);
   // router.use('/admin', adminRoutes);
   router.use('/equipment', createEquipmentRoutes(knex, logger));
+  router.use('/characters', characterRoutes);
 
   // 404 handler for unknown API routes
   router.use('*', (req, res) => {

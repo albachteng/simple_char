@@ -28,6 +28,7 @@ export interface SavedCharacter {
     notes?: string // Optional for backward compatibility - per-character notes
   }
   timestamp: number
+  storageType?: 'local' | 'database' // Optional for backward compatibility
 }
 
 export interface ICharacterStorage {

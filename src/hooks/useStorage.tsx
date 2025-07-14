@@ -1,13 +1,14 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { useAuth } from './useAuth'
-import type { ICharacterStorage } from '../storage/ICharacterStorage'
+import type { ICharacterStorage, SavedCharacter } from '../storage/ICharacterStorage'
 
 interface StorageContextType {
   isUsingDatabase: boolean
-  saveCharacter: (name: string, character: ICharacterStorage) => Promise<boolean>
+  saveCharacter: (character: SavedCharacter) => Promise<boolean>
   loadCharacter: (name: string) => Promise<ICharacterStorage | null>
   deleteCharacter: (name: string) => Promise<boolean>
   listCharacters: () => Promise<string[]>
+  listCharacterDetails: () => Promise<SavedCharacter[]>
   syncLocalToDatabase: () => Promise<void>
   isLoading: boolean
 }
@@ -25,26 +26,26 @@ export function StorageProvider({ children }: StorageProviderProps) {
   // Storage mode is determined automatically by authentication status
   const isUsingDatabase = isAuthenticated && !!token
 
-  const saveCharacter = async (name: string, character: ICharacterStorage): Promise<boolean> => {
+  const saveCharacter = async (character: SavedCharacter): Promise<boolean> => {
     setIsLoading(true)
     try {
       if (isUsingDatabase) {
         // Try database first, fallback to local if it fails
-        const success = await saveToDatabase(name, character, token!)
+        const success = await saveToDatabase(character, token!)
         if (success) {
           return true
         } else {
           console.warn('Database save failed, falling back to local storage')
-          return await saveToLocal(name, character)
+          return await saveToLocal(character)
         }
       } else {
         // Use local storage when not authenticated
-        return await saveToLocal(name, character)
+        return await saveToLocal(character)
       }
     } catch (error) {
       console.error('Error saving character:', error)
       // Always fallback to local storage on error
-      return await saveToLocal(name, character)
+      return await saveToLocal(character)
     } finally {
       setIsLoading(false)
     }
@@ -119,6 +120,43 @@ export function StorageProvider({ children }: StorageProviderProps) {
     }
   }
 
+  const listCharacterDetails = async (): Promise<SavedCharacter[]> => {
+    setIsLoading(true)
+    try {
+      if (isUsingDatabase) {
+        // Get detailed characters from database, with local as fallback/supplement
+        const databaseCharacters = await listCharacterDetailsFromDatabase(token!)
+        const localCharacters = await listCharacterDetailsFromLocal()
+        
+        // Combine and deduplicate by name, prioritizing database
+        const combinedMap = new Map<string, SavedCharacter>()
+        
+        // Add local characters first
+        localCharacters.forEach(char => {
+          combinedMap.set(char.name, { ...char, storageType: 'local' })
+        })
+        
+        // Add database characters, overriding local ones
+        databaseCharacters.forEach(char => {
+          combinedMap.set(char.name, { ...char, storageType: 'database' })
+        })
+        
+        return Array.from(combinedMap.values()).sort((a, b) => b.timestamp - a.timestamp)
+      } else {
+        // Use local storage only when not authenticated
+        const localCharacters = await listCharacterDetailsFromLocal()
+        return localCharacters.map(char => ({ ...char, storageType: 'local' }))
+      }
+    } catch (error) {
+      console.error('Error listing character details:', error)
+      // Fallback to local only
+      const localCharacters = await listCharacterDetailsFromLocal()
+      return localCharacters.map(char => ({ ...char, storageType: 'local' }))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const syncLocalToDatabase = async (): Promise<void> => {
     if (!isUsingDatabase) {
       throw new Error('Database not available - user must be logged in')
@@ -126,13 +164,10 @@ export function StorageProvider({ children }: StorageProviderProps) {
 
     setIsLoading(true)
     try {
-      const localCharacters = await listFromLocal()
+      const localCharacters = await listCharacterDetailsFromLocal()
       
-      for (const characterName of localCharacters) {
-        const character = await loadFromLocal(characterName)
-        if (character) {
-          await saveToDatabase(characterName, character, token!)
-        }
+      for (const character of localCharacters) {
+        await saveToDatabase(character, token!)
       }
     } catch (error) {
       console.error('Error syncing to database:', error)
@@ -148,6 +183,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
     loadCharacter,
     deleteCharacter,
     listCharacters,
+    listCharacterDetails,
     syncLocalToDatabase,
     isLoading,
   }
@@ -168,11 +204,12 @@ export function useStorage() {
 }
 
 // Local storage functions (existing behavior)
-async function saveToLocal(name: string, character: ICharacterStorage): Promise<boolean> {
+async function saveToLocal(character: SavedCharacter): Promise<boolean> {
   try {
     const { CharacterManager } = await import('../storage/CharacterManager')
-    const characterManager = new CharacterManager()
-    characterManager.saveCharacter(name, character)
+    const { LocalStorageCharacterStorage } = await import('../storage/LocalStorageCharacterStorage')
+    const characterManager = new CharacterManager(new LocalStorageCharacterStorage())
+    await characterManager.saveCharacter(character.name, character)
     return true
   } catch (error) {
     console.error('Local storage save error:', error)
@@ -215,21 +252,28 @@ async function listFromLocal(): Promise<string[]> {
 }
 
 // Database storage functions (API integration)
-async function saveToDatabase(name: string, character: ICharacterStorage, token: string): Promise<boolean> {
+async function saveToDatabase(character: SavedCharacter, token: string): Promise<boolean> {
   try {
+    console.log('Attempting to save character to database:', character.name)
+    console.log('Character data:', character)
+    
     const response = await fetch('/api/characters', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        name,
-        character_data: character,
-      }),
+      body: JSON.stringify(character),
     })
 
+    console.log('Response status:', response.status)
     const data = await response.json()
+    console.log('Response data:', data)
+    
+    if (!data.success) {
+      console.error('Server returned error:', data)
+    }
+    
     return data.success || false
   } catch (error) {
     console.error('Database storage save error:', error)
@@ -250,7 +294,7 @@ async function loadFromDatabase(name: string, token: string): Promise<ICharacter
     }
 
     const data = await response.json()
-    return data.success ? data.data.character_data : null
+    return data.success ? data.data : null
   } catch (error) {
     console.error('Database storage load error:', error)
     return null
@@ -290,6 +334,38 @@ async function listFromDatabase(token: string): Promise<string[]> {
     return data.success ? data.data.map((char: any) => char.name) : []
   } catch (error) {
     console.error('Database storage list error:', error)
+    return []
+  }
+}
+
+async function listCharacterDetailsFromDatabase(token: string): Promise<SavedCharacter[]> {
+  try {
+    const response = await fetch('/api/characters', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      return []
+    }
+
+    const data = await response.json()
+    return data.success ? data.data : []
+  } catch (error) {
+    console.error('Database storage list details error:', error)
+    return []
+  }
+}
+
+async function listCharacterDetailsFromLocal(): Promise<SavedCharacter[]> {
+  try {
+    const { CharacterManager } = await import('../storage/CharacterManager')
+    const { LocalStorageCharacterStorage } = await import('../storage/LocalStorageCharacterStorage')
+    const characterManager = new CharacterManager(new LocalStorageCharacterStorage())
+    return await characterManager.listCharacters()
+  } catch (error) {
+    console.error('Local storage list details error:', error)
     return []
   }
 }
